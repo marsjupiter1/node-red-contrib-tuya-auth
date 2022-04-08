@@ -1,0 +1,34 @@
+<script type="text/x-red" data-template-name="tuya_sign">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-topic"><i class="fa fa-tasks"></i> Topic</label>
+        <input type="text" id="node-input-topic" placeholder="Topic">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="tuya_sign">
+    <p>Create the sign string for a tuya api request</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType("tuya_sign", {
+      category: "function",
+      defaults: {
+        name: {value:""},
+        topic: {value:""}
+      },
+      color:"#e2d96e",
+      inputs: 1,
+      outputs: 1,
+      icon: "font-awesome/fa-plus-square-o",
+      label: function() {
+        return this.name || "tuya_sign";
+      },
+      labelStyle: function() {
+        return this.name ? "node_label_italic" : "";
+      }
+    });
+</script>
