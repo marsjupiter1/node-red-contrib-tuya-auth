@@ -1,0 +1,107 @@
+[
+    {
+        "id": "f340b4d0f74971ab",
+        "type": "inject",
+        "z": "a87dbac809ff0051",
+        "name": "kitchen1",
+        "props": [
+            {
+                "p": "time",
+                "v": "",
+                "vt": "date"
+            },
+            {
+                "p": "device_id",
+                "v": "kitchen1_device_id",
+                "vt": "global"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "0.7",
+        "topic": "",
+        "x": 300,
+        "y": 800,
+        "wires": [
+            [
+                "e4fb9bd4b9d591bc"
+            ]
+        ]
+    },
+    {
+        "id": "e4fb9bd4b9d591bc",
+        "type": "function",
+        "z": "a87dbac809ff0051",
+        "name": "SetTuyaDetails",
+        "func": "var creds = global.get(\"tuya\");\nmsg.accessKey = creds.access_token;\nmsg.secretKey=global.get(\"tuya_secret_key\");\nmsg.clientKey  = global.get(\"tuya_client_id\");\nvar device_id = msg.device_id;\nmsg.url = \"/v1.0/devices/\"+device_id;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 800,
+        "wires": [
+            [
+                "0dbc6958996bd4fe"
+            ]
+        ]
+    },
+    {
+        "id": "0dbc6958996bd4fe",
+        "type": "tuya_sign",
+        "z": "a87dbac809ff0051",
+        "name": "",
+        "topic": "",
+        "x": 760,
+        "y": 800,
+        "wires": [
+            [
+                "b9936a583144fdc6"
+            ]
+        ]
+    },
+    {
+        "id": "b9936a583144fdc6",
+        "type": "function",
+        "z": "a87dbac809ff0051",
+        "name": "Create Request",
+        "func": "var device_id = msg.device_id;\nvar url = \"https://openapi.tuyaeu.com\"+msg.url\nvar t = msg.time;\nvar method = \"GET\";\nvar client_id  = global.get(\"tuya_client_id\");\n\nvar token = msg.accessKey;\nvar sign = msg.payload;\nmsg.headers ={\n \"sign_method\": \"HMAC-SHA256\",\n \"client_id\" : client_id,\n \"t\": t.toString(),\n \"mode\" : \"cors\",\n \"Content-Type\": \"application/json\",\n \"sign\": sign,\n \"access_token\" : token\n },\n msg.payload = '';\n msg.url = url;\n msg.method = \"GET\";\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1040,
+        "y": 800,
+        "wires": [
+            [
+                "23999c6701d47837",
+                "a8d1171a016b6a21"
+            ]
+        ]
+    },
+    {
+        "id": "23999c6701d47837",
+        "type": "http request",
+        "z": "a87dbac809ff0051",
+        "name": "",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 1330,
+        "y": 800,
+        "wires": [
+            [
+                "b2c1aa7643f84ac4"
+            ]
+        ]
+    }
+]
