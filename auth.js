@@ -13,7 +13,6 @@ module.exports = function(RED) {
 
         this.on("input", function(msg) {
                 var axios = require("axios");
-                var crypto = require("crypto");
                 const signUrl = '/v1.0/token?grant_type=1';
                 const timestamp = Date.now().toString();
                 var input = Number(msg.payload);
@@ -64,7 +63,82 @@ module.exports = function(RED) {
 
     RED.nodes.registerType("tuya_auth", tuya_auth);
 
-    //var axios = require("axios");
+   
+    function tuya_get(config) {
+        RED.nodes.createNode(this, config);
+
+        var node = this;
+        this.topic = config.topic;
+        this.host = config.host;
+        this.topics = {};
+
+        this.on("input", function(msg) {
+                var axios = require("axios");
+                var input = Number(msg.payload);
+                var method= "GET";
+                if (msg.hasOwnProperty("method")){
+                    method = msg.method;
+                }
+                var url = "" ;
+                if (msg.hasOwnProperty("url")){
+                    url = msg.url;
+                }
+
+                var host = node.host;
+                if (msg.hasOwnProperty("host")){
+                    host = msg.host;
+                }
+
+                var accessKey="";
+                if (msg.hasOwnProperty("accessKey")){
+                  accessKey = msg.accessKey;
+                }
+                var secretKey="";
+                if (msg.hasOwnProperty("secretKey")){
+                  secretKey = msg.secretKey;
+                }
+                var clientKey="";
+                if (msg.hasOwnProperty("clientKey")){
+                    clientKey = msg.clientKey;
+                }
+                
+                var answer = getRequestSign(msg.time,clientKey,accessKey,secretKey,url, method, {}, "");
+
+                const headers = {
+                    t: msg.time,
+                    sign_method: 'HMAC-SHA256',
+                    client_id: clientKey,
+                    sign:  answer.sign,
+                    mode : 'cors',
+                    access_token: accessKey,
+                    'Content-Type': 'application/json',
+                  };
+                  msg.headers = headers;
+                  var httpClient = axios.create({
+                      baseURL: host,
+                      timeout: 5 * 1e3,
+                    });
+                  //node.warn(host + " > "+httpClient);  
+                  httpClient.get(url, { headers }).then(res => {
+                    
+                      msg.payload = res.data;
+                  
+                      node.send(msg);
+                    })
+                    .catch(error => {
+                      
+                      msg.payload = error;
+                      node.send(msg)
+                    })
+              
+
+            
+        });
+    }
+
+    RED.nodes.registerType("tuya_get", tuya_get);
+
+
     function tuya_sign(config) {
         RED.nodes.createNode(this, config);
 
