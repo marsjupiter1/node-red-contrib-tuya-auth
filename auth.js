@@ -82,7 +82,8 @@ function getRequestSign( clientKey,accessKey,secretKey, path,  method,  headers,
 
   const querystring = decodeURIComponent(qs.stringify(sortedQuery));
   const url = querystring ? `${uri}?${querystring}` : uri;
-  const contentHash = crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex');
+  //const contentHash = crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex');
+  const contentHash = crypto.createHash('sha256').update(body).digest('hex');
   const stringToSign = [method, contentHash, '', url].join('\n');
   const signStr = clientKey + accessKey + t + stringToSign;
   return {
@@ -93,7 +94,8 @@ function getRequestSign( clientKey,accessKey,secretKey, path,  method,  headers,
     sign_method: 'HMAC-SHA256',
     access_token: clientKey,
     stringToSign: stringToSign,
-    signStr: signStr
+    signStr: signStr,
+    body: body
   };
 }
 
