@@ -53,12 +53,12 @@
 </script>
 
 <script type="text/javascript">
-    RED.nodes.registerType("tuya_sign", {
+    RED.nodes.registerType("tuya_auth", {
       category: "function",
       defaults: {
         name: {value:""},
         topic: {value:""},
-        host: {value:"https://openapi.tuyaeu.com"},
+        host: {value:"https://openapi.tuyaeu.com"}
       },
       color:"#e2d96e",
       inputs: 1,
