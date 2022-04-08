@@ -41,7 +41,7 @@ module.exports = function(RED) {
                 if (msg.hasOwnProperty("clientKey")){
                     clientKey = msg.clientKey;
                 }
-                node.warn(msg.time);
+                
                 msg.payload =  getRequestSign(msg.time,clientKey,accessKey,secretKey,url, method, {}, query,"");
 
                 node.send(msg);
@@ -87,10 +87,7 @@ function getRequestSign( t,clientKey,accessKey,secretKey, path,  method,  header
   const contentHash = crypto.createHash('sha256').update(body).digest('hex');
   const stringToSign = [method, contentHash, '', url].join('\n');
   const signStr = clientKey + accessKey + t + stringToSign;
-  return {
+  return  encryptStr(signStr, secretKey);
 
-    sign: encryptStr(signStr, secretKey),
-
-  };
 }
 
