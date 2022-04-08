@@ -24,10 +24,6 @@ module.exports = function(RED) {
                 if (msg.hasOwnProperty("url")){
                     url = msg.url;
                 }
-                var query = "";;
-                if (msg.hasOwnProperty("query")){
-                    url = msg.query;
-                }
 
                 var accessKey="";
                 if (msg.hasOwnProperty("accessKey")){
@@ -42,8 +38,10 @@ module.exports = function(RED) {
                     clientKey = msg.clientKey;
                 }
                 
-                msg.payload =  getRequestSign(msg.time,clientKey,accessKey,secretKey,url, method, {}, query,"");
-
+                var answer = getRequestSign(msg.time,clientKey,accessKey,secretKey,url, method, {}, "");
+                msg.payload = answer.sign;
+                //msg.querystring = answer.querystring;
+                //msg.sortedQuery = answer.sortedQuery;
                 node.send(msg);
 
             
@@ -67,27 +65,31 @@ module.exports = function(RED) {
  * @param path
  * @param method
  * @param headers
- * @param query
  * @param body
  */
-function getRequestSign( t,clientKey,accessKey,secretKey, path,  method,  headers,  query,  body) {
+function getRequestSign( t,clientKey,accessKey,secretKey, path,  method,  headers,  body) {
   var crypto = require("crypto");
   var qs = require("qs");
   
   const [uri, pathQuery] = path.split('?');
-  const queryMerged = Object.assign(query, qs.parse(pathQuery));
+  const queryMerged =  qs.parse(pathQuery);
   var sortedQuery= {};
   Object.keys(queryMerged)
     .sort()
-    .forEach((i) => (sortedQuery[i] = query[i]));
+    .forEach((i) => (sortedQuery[i] = queryMerged[i]));
 
   const querystring = decodeURIComponent(qs.stringify(sortedQuery));
+  
   const url = querystring ? `${uri}?${querystring}` : uri;
   //const contentHash = crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex');
   const contentHash = crypto.createHash('sha256').update(body).digest('hex');
   const stringToSign = [method, contentHash, '', url].join('\n');
   const signStr = clientKey + accessKey + t + stringToSign;
-  return  encryptStr(signStr, secretKey);
+  return  {
+      sign: encryptStr(signStr, secretKey)
+      //querystring: querystring,
+      //sortedQuery: sortedQuery
+  }
 
 }
 
