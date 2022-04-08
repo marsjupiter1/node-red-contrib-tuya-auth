@@ -32,3 +32,43 @@
       }
     });
 </script>
+
+<script type="text/x-red" data-template-name="tuya_auth">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-topic"><i class="fa fa-tasks"></i> Topic</label>
+        <input type="text" id="node-input-topic" placeholder="Topic">
+    </div>
+    <div class="form-row">
+        <label for="node-input-host"><i class="fa fa-host"></i> Host</label>
+        <input type="text" id="node-input-host">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="tuya_auth">
+    <p>Obtain the tuya access token</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType("tuya_sign", {
+      category: "function",
+      defaults: {
+        name: {value:""},
+        topic: {value:""},
+        host: {value:"https://openapi.tuyaeu.com"},
+      },
+      color:"#e2d96e",
+      inputs: 1,
+      outputs: 1,
+      icon: "font-awesome/fa-plus-square-o",
+      label: function() {
+        return this.name || "tuya_auth";
+      },
+      labelStyle: function() {
+        return this.name ? "node_label_italic" : "";
+      }
+    });
+</script>

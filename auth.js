@@ -3,7 +3,68 @@
 module.exports = function(RED) {
     "use strict";
 
-  
+    function tuya_auth(config) {
+        RED.nodes.createNode(this, config);
+
+        var node = this;
+        this.topic = config.topic;
+        this.topics = {};
+
+        this.on("input", function(msg) {
+                var axios = require("axios")
+                const signUrl = '/v1.0/token?grant_type=1';
+                const timestamp = Date.now().toString();
+                var input = Number(msg.payload);
+                var host = node.host;
+                if (msg.hasOwnProperty("host")){
+                    host = msg.host;
+                }
+                var url = host+signUrl;
+
+                var accessKey="";
+                if (msg.hasOwnProperty("accessKey")){
+                  accessKey = msg.accessKey;
+                }
+                var secretKey="";
+                if (msg.hasOwnProperty("secretKey")){
+                  secretKey = msg.secretKey;
+                }
+                var clientKey="";
+                if (msg.hasOwnProperty("clientKey")){
+                    clientKey = msg.clientKey;
+                }
+                
+                var answer = getRequestSign(timestamp,clientKey,accessKey,secretKey,url, method, {}, "");
+               
+               
+                const contentHash = crypto.createHash('sha256').update('').digest('hex');
+                const stringToSign = [method, contentHash, '', signUrl].join('\n');
+                const signStr = config.accessKey + timestamp + stringToSign;
+              
+                const headers = {
+                  t: timestamp,
+                  sign_method: 'HMAC-SHA256',
+                  client_id: accessKey,
+                  sign: await encryptStr(signStr, secretKey),
+                };
+
+                httpClient = axios.create({
+                    baseURL: host,
+                    timeout: 5 * 1e3,
+                  });
+                const { data: login } = await httpClient.get(signUrl, { headers });
+                if (!login || !login.success) {
+                  throw Error(`Authorization Failed: ${login.msg}`);
+                }
+                msg.payload = login.result;
+                
+                node.send(msg);
+
+            
+        });
+    }
+
+    RED.nodes.registerType("tuya_sign", tuya_auth);
 
     //var axios = require("axios");
     function tuya_sign(config) {
