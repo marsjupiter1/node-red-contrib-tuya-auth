@@ -8,6 +8,7 @@ module.exports = function(RED) {
 
         var node = this;
         this.topic = config.topic;
+        this.host = config.host;
         this.topics = {};
 
         this.on("input", function(msg) {
