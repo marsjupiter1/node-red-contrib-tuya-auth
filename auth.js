@@ -41,7 +41,8 @@ module.exports = function(RED) {
                 if (msg.hasOwnProperty("clientKey")){
                     clientKey = msg.clientKey;
                 }
-                msg.payload =  getRequestSign(clientKey,accessKey,secretKey,url, method, {}, query,"");
+                node.warn(msg.time);
+                msg.payload =  getRequestSign(msg.time,clientKey,accessKey,secretKey,url, method, {}, query,"");
 
                 node.send(msg);
 
@@ -69,10 +70,10 @@ module.exports = function(RED) {
  * @param query
  * @param body
  */
-function getRequestSign( clientKey,accessKey,secretKey, path,  method,  headers,  query,  body) {
+function getRequestSign( t,clientKey,accessKey,secretKey, path,  method,  headers,  query,  body) {
   var crypto = require("crypto");
   var qs = require("qs");
-  const t = Date.now().toString();
+  
   const [uri, pathQuery] = path.split('?');
   const queryMerged = Object.assign(query, qs.parse(pathQuery));
   var sortedQuery= {};
@@ -87,15 +88,9 @@ function getRequestSign( clientKey,accessKey,secretKey, path,  method,  headers,
   const stringToSign = [method, contentHash, '', url].join('\n');
   const signStr = clientKey + accessKey + t + stringToSign;
   return {
-    t,
-    path: url,
-    client_id: clientKey,
+
     sign: encryptStr(signStr, secretKey),
-    sign_method: 'HMAC-SHA256',
-    access_token: clientKey,
-    stringToSign: stringToSign,
-    signStr: signStr,
-    body: body
+
   };
 }
 
