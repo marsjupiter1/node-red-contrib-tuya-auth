@@ -70,16 +70,15 @@ module.exports = function(RED) {
         var node = this;
         this.topic = config.topic;
         this.host = config.host;
+        this.url = config.url;
         this.topics = {};
 
         this.on("input", function(msg) {
                 var axios = require("axios");
                 var input = Number(msg.payload);
                 var method= "GET";
-                if (msg.hasOwnProperty("method")){
-                    method = msg.method;
-                }
-                var url = "" ;
+ 
+                var url = node.url ;
                 if (msg.hasOwnProperty("url")){
                     url = msg.url;
                 }
@@ -138,6 +137,86 @@ module.exports = function(RED) {
 
     RED.nodes.registerType("tuya_get", tuya_get);
 
+    function tuya_post(config) {
+        RED.nodes.createNode(this, config);
+
+        var node = this;
+        this.topic = config.topic;
+        this.host = config.host;
+        this.body = config.body;
+        this.url = config.url;
+        this.topics = {};
+
+        this.on("input", function(msg) {
+                var axios = require("axios");
+                var input = Number(msg.payload);
+                var method= "POST";
+ 
+                var url = node.url ;
+                if (msg.hasOwnProperty("url")){
+                    url = msg.url;
+                }
+
+                var body = node.url ;
+                if (msg.hasOwnProperty("body")){
+                    body = msg.body;
+                }
+
+
+                var host = node.host;
+                if (msg.hasOwnProperty("host")){
+                    host = msg.host;
+                }
+
+                var accessKey="";
+                if (msg.hasOwnProperty("accessKey")){
+                  accessKey = msg.accessKey;
+                }
+                var secretKey="";
+                if (msg.hasOwnProperty("secretKey")){
+                  secretKey = msg.secretKey;
+                }
+                var clientKey="";
+                if (msg.hasOwnProperty("clientKey")){
+                    clientKey = msg.clientKey;
+                }
+                
+                var answer = getRequestSign(msg.time,clientKey,accessKey,secretKey,url, method, {}, body);
+
+                const headers = {
+                    t: msg.time,
+                    sign_method: 'HMAC-SHA256',
+                    client_id: clientKey,
+                    sign:  answer.sign,
+                    mode : 'cors',
+                    access_token: accessKey,
+                    'Content-Type': 'application/json',
+                  };
+                  //msg.headers = headers;
+                  //msg.signStr = answer.signStr;
+                  var httpClient = axios.create({
+                      baseURL: host,
+                      timeout: 5 * 1e3,
+                    });
+                  //node.warn(host + " > "+httpClient);  
+                  httpClient.post(url,body, { headers }).then(res => {
+                    
+                      msg.payload = res.data;
+                  
+                      node.send(msg);
+                    })
+                    .catch(error => {
+                      
+                      msg.payload = error;
+                      node.send(msg)
+                    })
+              
+
+            
+        });
+    }
+
+    RED.nodes.registerType("tuya_post", tuya_post);
 
     function tuya_sign(config) {
         RED.nodes.createNode(this, config);
@@ -219,9 +298,9 @@ function getRequestSign( t,clientKey,accessKey,secretKey, path,  method,  header
   const stringToSign = [method, contentHash, '', url].join('\n');
   const signStr = clientKey + accessKey + t + stringToSign;
   return  {
-      sign: encryptStr(signStr, secretKey),
-      signStr: signStr,
-      sortedQuery: sortedQuery
+      sign: encryptStr(signStr, secretKey)
+      //signStr: signStr,
+      //sortedQuery: sortedQuery
   }
 
 }

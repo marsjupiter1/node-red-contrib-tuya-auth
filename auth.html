@@ -86,6 +86,10 @@
         <label for="node-input-host"><i class="fa fa-host"></i> Host</label>
         <input type="text" id="node-input-host">
     </div>
+    <div class="form-row">
+        <label for="node-input-host"><i class="fa fa-url"></i> Url</label>
+        <input type="text" id="node-input-url">
+    </div>
 </script>
 
 <script type="text/x-red" data-help-name="tuya_get">
@@ -106,6 +110,57 @@
       icon: "font-awesome/fa-plus-square-o",
       label: function() {
         return this.name || "tuya_get";
+      },
+      labelStyle: function() {
+        return this.name ? "node_label_italic" : "";
+      }
+    });
+</script>
+
+
+<script type="text/x-red" data-template-name="tuya_post">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-topic"><i class="fa fa-tasks"></i> Topic</label>
+        <input type="text" id="node-input-topic" placeholder="Topic">
+    </div>
+    <div class="form-row">
+        <label for="node-input-host"><i class="fa fa-host"></i> Host</label>
+        <input type="text" id="node-input-host">
+    </div>
+    <div class="form-row">
+        <label for="node-input-host"><i class="fa fa-url"></i> Url</label>
+        <input type="text" id="node-input-url">
+    </div>
+    <div class="form-row">
+        <label for="node-input-body"><i class="fa fa-host"></i> Body</label>
+        <input type="text" id="node-input-body">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="tuya_post">
+    <p>Send a signed post request to tuya. A tuya command forms the body data of the request</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType("tuya_post", {
+      category: "function",
+      defaults: {
+        name: {value:""},
+        topic: {value:""},
+        body: {value:""},
+        url: {value:""},
+        host: {value:"https://openapi.tuyaeu.com"}
+      },
+      color:"#e2d96e",
+      inputs: 1,
+      outputs: 1,
+      icon: "font-awesome/fa-plus-square-o",
+      label: function() {
+        return this.name || "tuya_post";
       },
       labelStyle: function() {
         return this.name ? "node_label_italic" : "";
