@@ -1,0 +1,143 @@
+[
+ 
+    {
+        "id": "c1d5d7d955198e60",
+        "type": "comment",
+        "z": "f75ff2dcb329eb1c",
+        "name": "The token has a two hour life time, seems getting a new token before that time doesn't help. So get a token exactly every 2 hours",
+        "info": "",
+        "x": 670,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "f3205b55dd5b27eb",
+        "type": "tuya_auth",
+        "z": "f75ff2dcb329eb1c",
+        "name": "",
+        "topic": "",
+        "host": "https://openapi.tuyaeu.com",
+        "x": 780,
+        "y": 420,
+        "wires": [
+            [
+                "6881b78c6d6a07ba"
+            ]
+        ]
+    },
+    {
+        "id": "8ad1f24471b61e71",
+        "type": "inject",
+        "z": "f75ff2dcb329eb1c",
+        "name": "",
+        "props": [
+            {
+                "p": "time",
+                "v": "",
+                "vt": "date"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "300",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "0.02",
+        "topic": "",
+        "x": 410,
+        "y": 420,
+        "wires": [
+            [
+                "a2aa417869134b14"
+            ]
+        ]
+    },
+    {
+        "id": "a2aa417869134b14",
+        "type": "function",
+        "z": "f75ff2dcb329eb1c",
+        "name": "SetTuyaDetails",
+        "func": "\nmsg.secretKey=global.get(\"tuya_secret_key\");\nmsg.clientKey  = global.get(\"tuya_client_id\");\n//msg.host = \"https://openapi.tuyaeu.com\";\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 420,
+        "wires": [
+            [
+                "f3205b55dd5b27eb"
+            ]
+        ]
+    },
+    {
+        "id": "6881b78c6d6a07ba",
+        "type": "function",
+        "z": "f75ff2dcb329eb1c",
+        "name": "Extract Token from Response",
+        "func": "if (!msg.payload.hasOwnProperty(\"result\")){\n    node.warn(\"failed timed access token reqest\");\n    node.warn(msg);\n    return;\n}\n\nvar data = msg.payload;\n\nvar access = data.result.access_token;\nvar refresh = data.result.refresh_token;\nvar expire = data.result.expire_time;\nglobal.set(\"tuya_expire\",expire);\nvar creds ={\n \"access_token\" : access,\n \"refresh_token\" : refresh\n}\nglobal.set(\"tuya\", creds);\nmsg.payload = data.result;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1070,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e9cedeacfb3790b4",
+        "type": "inject",
+        "z": "f75ff2dcb329eb1c",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "time",
+                "v": "",
+                "vt": "date"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "tuya_expire",
+        "payloadType": "global",
+        "x": 590,
+        "y": 500,
+        "wires": [
+            [
+                "a0dcb9424cd5fcc6"
+            ]
+        ]
+    },
+    {
+        "id": "a0dcb9424cd5fcc6",
+        "type": "function",
+        "z": "f75ff2dcb329eb1c",
+        "name": "",
+        "func": "var expire = msg.payload-1;\nglobal.set(\"tuya_expire\",expire);\nif (expire < 0){\n    // better late than early\n    return [msg,null];\n}else{\n    msg.payload = expire;\n    return [null,msg];\n}\nreturn msg;",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 800,
+        "y": 500,
+        "wires": [
+            [
+                "a2aa417869134b14"
+            ],
+            []
+        ]
+    }
+]
