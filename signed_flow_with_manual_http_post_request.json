@@ -1,0 +1,183 @@
+[
+    {
+        "id": "86216f774422fed0",
+        "type": "function",
+        "z": "315a18c326fdfd4e",
+        "name": "SetTuyaDetails",
+        "func": "var creds = global.get(\"tuya\");\nmsg.accessKey = creds.access_token;\nmsg.secretKey=global.get(\"tuya_secret_key\");\nmsg.clientKey  = global.get(\"tuya_client_id\");\nvar device_id = msg.device_id;\nmsg.url = \"/v1.0/iot-03/devices/\"+device_id+\"/commands\";\nmsg.body = msg.payload;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 220,
+        "wires": [
+            [
+                "6494bda33dd57d80"
+            ]
+        ]
+    },
+    {
+        "id": "89156168df979bc1",
+        "type": "function",
+        "z": "315a18c326fdfd4e",
+        "name": "",
+        "func": "if (msg.payload.hasOwnProperty(\"result\")){\n    return [msg, null];\n}\nreturn [null, msg];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 220,
+        "wires": [
+            [
+                "f823dbeb9ef13e41"
+            ],
+            [
+                "c546f5d9def499af",
+                "f1432afbfbb47a15"
+            ]
+        ]
+    },
+    {
+        "id": "f1432afbfbb47a15",
+        "type": "tuya_auth",
+        "z": "315a18c326fdfd4e",
+        "name": "",
+        "topic": "",
+        "host": "https://openapi.tuyaeu.com",
+        "x": 420,
+        "y": 300,
+        "wires": [
+            [
+                "e459d20e5c6f3998"
+            ]
+        ]
+    },
+    {
+        "id": "e459d20e5c6f3998",
+        "type": "function",
+        "z": "315a18c326fdfd4e",
+        "name": "Extract Token from Response",
+        "func": "if (!msg.payload.hasOwnProperty(\"result\")){\n    node.warn(\"failed timed access token reqest\");\n    node.warn(msg);\n    return;\n}\n\nvar data = msg.payload;\n\nvar access = data.result.access_token;\nvar refresh = data.result.refresh_token;\nvar expire = data.result.expire_time;\nglobal.set(\"tuya_expire\",expire);\nvar creds ={\n \"access_token\" : access,\n \"refresh_token\" : refresh\n}\nglobal.set(\"tuya\", creds);\nmsg.accessKey = creds.access_token;\nmsg.payload = data.result;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 670,
+        "y": 300,
+        "wires": [
+            [
+                "e1f27df7c6e13d65"
+            ]
+        ]
+    },
+    {
+        "id": "42f798c9fd41ba20",
+        "type": "function",
+        "z": "315a18c326fdfd4e",
+        "name": "",
+        "func": "if (msg.payload.hasOwnProperty(\"result\")){\n    return [msg, null];\n}\nreturn [null, msg];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1060,
+        "y": 300,
+        "wires": [
+            [],
+            [
+                "ef085521ae1151fb"
+            ]
+        ]
+    },
+    {
+        "id": "c546f5d9def499af",
+        "type": "debug",
+        "z": "315a18c326fdfd4e",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 950,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "ef085521ae1151fb",
+        "type": "debug",
+        "z": "315a18c326fdfd4e",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "\"Tuya Token retry failed:: giving up\"",
+        "targetType": "jsonata",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1220,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "6494bda33dd57d80",
+        "type": "tuya_post",
+        "z": "315a18c326fdfd4e",
+        "name": "",
+        "topic": "",
+        "body": "",
+        "url": "",
+        "host": "https://openapi.tuyaeu.com",
+        "x": 540,
+        "y": 220,
+        "wires": [
+            [
+                "89156168df979bc1"
+            ]
+        ]
+    },
+    {
+        "id": "e1f27df7c6e13d65",
+        "type": "tuya_post",
+        "z": "315a18c326fdfd4e",
+        "name": "",
+        "topic": "",
+        "body": "",
+        "url": "",
+        "host": "https://openapi.tuyaeu.com",
+        "x": 900,
+        "y": 300,
+        "wires": [
+            [
+                "42f798c9fd41ba20"
+            ]
+        ]
+    },
+    {
+        "id": "f823dbeb9ef13e41",
+        "type": "debug",
+        "z": "315a18c326fdfd4e",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1010,
+        "y": 240,
+        "wires": []
+    }
+]
