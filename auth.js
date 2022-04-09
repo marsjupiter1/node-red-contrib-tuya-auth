@@ -77,6 +77,7 @@ module.exports = function(RED) {
                 var axios = require("axios");
                 var input = Number(msg.payload);
                 var method= "GET";
+                const timestamp = Date.now().toString();
  
                 var url = node.url ;
                 if (msg.hasOwnProperty("url")){
@@ -101,10 +102,10 @@ module.exports = function(RED) {
                     clientKey = msg.clientKey;
                 }
                 
-                var answer = getRequestSign(msg.time,clientKey,accessKey,secretKey,url, method, {}, "");
+                var answer = getRequestSign(timestamp,clientKey,accessKey,secretKey,url, method, {}, "");
 
                 const headers = {
-                    t: msg.time,
+                    t: timestamp,
                     sign_method: 'HMAC-SHA256',
                     client_id: clientKey,
                     sign:  answer.sign,
@@ -148,6 +149,7 @@ module.exports = function(RED) {
         this.topics = {};
 
         this.on("input", function(msg) {
+                const timestamp = Date.now().toString();
                 var axios = require("axios");
                 var input = Number(msg.payload);
                 var method= "POST";
@@ -181,10 +183,10 @@ module.exports = function(RED) {
                     clientKey = msg.clientKey;
                 }
                 
-                var answer = getRequestSign(msg.time,clientKey,accessKey,secretKey,url, method, {}, body);
+                var answer = getRequestSign(timestamp,clientKey,accessKey,secretKey,url, method, {}, body);
 
                 const headers = {
-                    t: msg.time,
+                    t: timestamp,
                     sign_method: 'HMAC-SHA256',
                     client_id: clientKey,
                     sign:  answer.sign,
