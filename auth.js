@@ -49,11 +49,11 @@ module.exports = function(RED) {
                 httpClient.get(signUrl, { headers }).then(res => {
                   
                     msg.payload = res.data;
-                
+                    msg.http_success = true;
                     node.send(msg);
                   })
                   .catch(error => {
-                    
+                    msg.http_success = false;
                     msg.payload = error;
                     node.send(msg)
                   })
@@ -122,11 +122,12 @@ module.exports = function(RED) {
                   httpClient.get(url, { headers }).then(res => {
                     
                       msg.payload = res.data;
+                      msg.http_success = true;
                   
                       node.send(msg);
                     })
                     .catch(error => {
-                      
+                      msg.http_success = false;
                       msg.payload = error;
                       node.send(msg)
                     })
@@ -204,11 +205,11 @@ module.exports = function(RED) {
                   httpClient.post(url,body, { headers }).then(res => {
                     
                       msg.payload = res.data;
-                  
+                      msg.http_success = true;
                       node.send(msg);
                     })
                     .catch(error => {
-                      
+                      msg.http_success = false;
                       msg.payload = error;
                       node.send(msg)
                     })
