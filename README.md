@@ -11,8 +11,6 @@ node tuya-get signs and makes a tuya http get request
 
 node tuya-post signs and makes a tuya http post request
 
-All keys and currently parameters need to be passed to the node. 
-
-In practical use you'd create a flow with a link-call that populates your secret data.
+In practical use you'd create a sub flow for the post and get requests that populates the secret data and will try and auth again if there is an error.
 
 See the flows files for example usage
