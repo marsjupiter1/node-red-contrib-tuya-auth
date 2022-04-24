@@ -39,6 +39,15 @@ module.exports = function(RED) {
 		}
 // 
 		function setDevice(req) {
+            if (msg.hasOwnProperty("id")){
+                this.Id = msg.id;
+            }
+            if (msg.hasOwnProperty("ip")){
+                this.Ip = msg.ip;
+            }
+            if (msg.hasOwnProperty("local_key")){
+                this.Key = msg.local_key;
+            }
 			if ( req == "request" ) {
 				device.get({"schema":true});
 			} else if ( req == "connect" ) {
