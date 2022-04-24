@@ -15,7 +15,7 @@ module.exports = function(RED) {
                 var axios = require("axios");
                 const signUrl = '/v1.0/token?grant_type=1';
                 const timestamp = Date.now().toString();
-                var input = Number(msg.payload);
+                
                 var host = node.host;
                 if (msg.hasOwnProperty("host")){
                     host = msg.host;
@@ -75,7 +75,7 @@ module.exports = function(RED) {
 
         this.on("input", function(msg) {
                 var axios = require("axios");
-                var input = Number(msg.payload);
+                
                 var method= "GET";
                 const timestamp = Date.now().toString();
  
@@ -152,7 +152,7 @@ module.exports = function(RED) {
         this.on("input", function(msg) {
                 const timestamp = Date.now().toString();
                 var axios = require("axios");
-                var input = Number(msg.payload);
+               
                 var method= "POST";
  
                 var url = node.url ;
@@ -230,7 +230,7 @@ module.exports = function(RED) {
 
         this.on("input", function(msg) {
            
-                var input = Number(msg.payload);
+                
                 var method= "GET";
                 if (msg.hasOwnProperty("method")){
                     method = msg.method;
