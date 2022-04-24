@@ -13,7 +13,8 @@
     "crypto": "^1.0.1",
     "crypto-js": "^3.1.9-1",
     "package-json-validator": "^0.6.3",
-    "qs": "^6.10.3"
+    "qs": "^6.10.3",
+    "tuyapi": "^7.2.1"
   },
   "node-red": {
     "nodes": {
