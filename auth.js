@@ -111,7 +111,13 @@ module.exports = function(RED) {
                 
 				dev_info.available = true;
 				if (this.renameSchema !== undefined || this.renameSchema !== null) {
-					data.dps = checkValidJSON(this.renameSchema) ? keyRename(data.dps,JSON.parse(this.renameSchema)) : data.dps;
+
+                    try{
+					    data.dps = checkValidJSON(this.renameSchema) ? keyRename(data.dps,JSON.parse(this.renameSchema)) : data.dps;
+                    }catch(e){
+                        node.log("looks like a bad key " + this.Name + " is probably got the wrong key")
+                        return
+                    }
 				}
 				var msg = {data:dev_info,commandByte:commandByte,payload:data};
 				if (this.filterCB !== "") {
