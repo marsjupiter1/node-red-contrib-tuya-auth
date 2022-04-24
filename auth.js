@@ -39,15 +39,7 @@ module.exports = function(RED) {
 		}
 // 
 		function setDevice(req) {
-            if (msg.hasOwnProperty("id")){
-                this.Id = msg.id;
-            }
-            if (msg.hasOwnProperty("ip")){
-                this.Ip = msg.ip;
-            }
-            if (msg.hasOwnProperty("local_key")){
-                this.Key = msg.local_key;
-            }
+ 
 			if ( req == "request" ) {
 				device.get({"schema":true});
 			} else if ( req == "connect" ) {
@@ -82,16 +74,17 @@ module.exports = function(RED) {
 		device.on('disconnected', () => {
 			this.status({fill:"red",shape:"ring",text:"disconnected from device"});
 			dev_info.available = false
-			msg = {data:dev_info}
+           //return;
+			var msg = {data:dev_info}
 			node.send(msg);
 			if (set_timeout) {
-				timeout = setTimeout(connectToDevice, 10000, 10, 'set timeout for re-connect');
+				var timeout = setTimeout(connectToDevice, 10000, 10, 'set timeout for re-connect');
 			}
 		});
 
 
 		device.on('connected', () => {
-			this.status({fill:"green",shape:"dot",text: this.Ip + " at " + getHumanTimeStamp()});
+			this.status({fill:"green",shape:"dot",text: device.device.ip + " at " + getHumanTimeStamp()});
 			try	{
 				clearTimeout(timeout)	
 			} catch(e) {
@@ -115,11 +108,12 @@ module.exports = function(RED) {
 
 		device.on('data', (data,commandByte) => {
 			if ("commandByte" !== null ) {
+                
 				dev_info.available = true;
 				if (this.renameSchema !== undefined || this.renameSchema !== null) {
 					data.dps = checkValidJSON(this.renameSchema) ? keyRename(data.dps,JSON.parse(this.renameSchema)) : data.dps;
 				}
-				msg = {data:dev_info,commandByte:commandByte,payload:data};
+				var msg = {data:dev_info,commandByte:commandByte,payload:data};
 				if (this.filterCB !== "") {
 					node.send(filterCommandByte(msg,this.filterCB));
 				} else {

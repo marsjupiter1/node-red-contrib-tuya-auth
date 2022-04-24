@@ -174,7 +174,7 @@
 		defaults: {
 			devName :		{ value: "", required: false},
 			devIp:			{ value: "", required: false},
-			devId:			{ value: "", required: false },
+			devId:			{ value: "", required: true },
 			devKey:			{ value: "", required: false},
 			protocolVer:	{ value: "3.3", required: true},
 			renameSchema:	{ value: "" },
@@ -197,7 +197,7 @@
 	</div>
 	<div class="form-row">
 		<label for="node-input-devIp"><i class="fa fa-server"></i> IP Address</label>
-		<input type="text" id="node-input-devIp" placeholder="10.10.6.180">
+		<input type="text" id="node-input-devIp" placeholder="">
 	</div>
 	<div class="form-row">
 		<label for="node-input-devId"><i class="fa fa-id-badge"></i> ID</label>
@@ -229,11 +229,11 @@
 		<dt>Name<span class="optional">string</span></dt>
 		<dd>Name to show in NodeRED</dd>
 		<dt class="property-type">IP address<span class="property-type">string</span></dt>
-		<dd>IP address or hostname of the device, can be overridden in msg.ip</dd>
+		<dd>IP address or hostname of the device. This is optional but can help</dd>
 		<dt class="property-type">Device ID<span class="property-type">string</span></dt>
-		<dd>Device ID obtained for the device, can be overridden in msg.id</dd>
+		<dd>Device ID obtained for the device</dd>
 		<dt class="property-type">Device key<span class="property-type">string</span></dt>
-		<dd>Device local key obtained for the device, can be overridden in msg.local_key</dd>
+		<dd>Device local key obtained for the device</dd>
 		<dt class="property-type">Version<span class="property-type">string</span></dt>
 		<dd>Tuya protocol version</dd>
 		<dt class="property-type">Rename schema<span class="property-type">JSON</span></dt>
