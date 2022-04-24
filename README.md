@@ -11,6 +11,8 @@ node tuya-get signs and makes a tuya http get request
 
 node tuya-post signs and makes a tuya http post request
 
+node tuya-socket that communicates with tuya devices directly on the local area network not using the cloud service.
+
 In practical use you'd create a sub flow for the post and get requests that populates the secret data and will try and auth again if there is an error.
 
 See the flows files for example usage
