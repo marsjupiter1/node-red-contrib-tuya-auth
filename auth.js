@@ -18,21 +18,30 @@ module.exports = function(RED) {
         let connectInterval = null;
         let statusInterval = null;
         let deviceInfo = { ip: config.devIp, name: config.devName, id: config.devId };
+       
     
         function connect(delay) {
             //node.log(`Connecting to ${deviceInfo.name} @ ${deviceInfo.ip} (delay: ${delay ? 'yes' : 'no'})`)
             clearTimeout(connectInterval);
             clearTimeout(statusInterval);
-            if (delay) {
-                connectInterval = setTimeout(() => connect(), 5000);
-            } else {
-                if (tuyaDevice.isConnected()) {
-                    node.log(`Device ${deviceInfo.name} already connected.`);
-                    return;
+            node.status({fill:"red",shape:"dot",text:"finding"});
+  
+            tuyaDevice.find({'options': {'timeout':2000}}).then( () => {
+                node.status({fill:"yellow",shape:"dot",text:"found"});
+                if (delay) {
+                    connectInterval = setTimeout(() => connect(), 5000);
+                } else {
+                    if (tuyaDevice.isConnected()) {
+                        node.log(`Device ${deviceInfo.name} already connected.`);
+                        return;
+                    }
+                    node.status({ fill: 'yellow', shape: 'dot', text: 'connecting...' });
+                    tuyaDevice.connect().then(() => { }).catch(() => { });
                 }
-                node.status({ fill: 'yellow', shape: 'dot', text: 'connecting...' });
-                tuyaDevice.connect().then(() => { }).catch(() => { });
-            }
+            }, (reason) => { 
+                node.status({fill:"red",shape:"ring",text:"failed: " + reason});
+            }); 
+           
         }
     
         function disconnect() {
@@ -67,7 +76,7 @@ module.exports = function(RED) {
             //        });
             //    }, config.pollingInterval * 1000);
             //}
-            node.status({ fill: 'green', shape: 'dot', text: `connected @ ${new Date().toLocaleTimeString()}` });
+            node.status({ fill: 'green', shape: 'dot', text: tuyaDevice.device.ip +  ` connected @ ${new Date().toLocaleTimeString()}` });
             node.send({ data: {  deviceinfo:deviceInfo, available: true } });
         });
     
@@ -100,7 +109,23 @@ module.exports = function(RED) {
                         disconnect();
                         break;
                 }
-            } else if ('dps' in command) {
+            } else if (req == "toggle") {
+				device.toggle();
+			} else if ( typeof req == "boolean" ) {
+				device.set({set: req}).then( () => {
+					node.status({fill:"green",shape:"dot",text: 'set success at:' + getHumanTimeStamp()});
+				}, (reason) => {
+					node.status({fill:"red",shape:"dot",text: 'set state failed:' + reason});
+				});
+			} else if ( "dps" in req ) {
+				console.log(req)
+				device.set(req);
+			} else if ( "multiple" in req) {
+				device.set({
+					multiple:true,
+					data: req.data
+				});
+			} else if ('dps' in command) {
                 tuyaDevice.set(command);
             } else {
                 node.log(`Unknown command for ${deviceInfo.name}: ${command}`);
