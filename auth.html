@@ -169,14 +169,14 @@
 </script>
 <script type="text/javascript">
 	RED.nodes.registerType("tuya-local-socket", {
-        category: 'Tuya',
-        paletteLabel: 'tuya_socket',
+		category: "Tuya",
 		defaults: {
-			devName :		{ value: "", required: false},
+			devName :		{ value: "", required: true},
 			devIp:			{ value: "", required: false},
 			devId:			{ value: "", required: true },
-			devKey:			{ value: "", required: false},
+			devKey:			{ value: "", required: true},
 			protocolVer:	{ value: "3.3", required: true},
+			pollingInterval: { value: "50", required: true },
 			renameSchema:	{ value: "" },
 			filterCB: 		{ value: "" },
 		},
@@ -190,7 +190,7 @@
 	});
 </script>
 <!--  -->
-<script type="text/x-red" data-template-name="tuya-local-socket">
+<script type="text/x-red" data-template-name="tuya-local=socket">
 	<div class="form-row">
 		<label for="node-input-devName"><i class="icon-tag"></i> Device name</label>
 		<input type="text" id="node-input-devName" placeholder="Node name">
@@ -212,6 +212,10 @@
 		<input type="text" id="node-input-protocolVer" placeholder="">
 	</div>
 	<div class="form-row">
+		<label for="node-input-pollingInterval"><i class="fa fa-list-ul"></i> Polling interval</label>
+		<input type="number" id="node-input-pollingInterval" placeholder="">
+	</div>
+	<div class="form-row">
 		<label for="node-input-renameSchema"><i class="fa fa-list-ul"></i> Rename Schema</label>
 		<input type="text" id="node-input-renameSchema" placeholder='{"1":"state"}'>
 	</div>
@@ -221,7 +225,7 @@
 	</div>
 </script>
 
-<script type="text/x-red" data-help-name="tuya-local-socket-scoket">
+<script type="text/x-red" data-help-name="tuya-local-socket">
 	<p>Connects to a Tuya device via active tcp socket using tuyapi library. 
 	Can receive commands to control and send status update in real time</p>
 	<h3>Config</h3>
@@ -229,13 +233,15 @@
 		<dt>Name<span class="optional">string</span></dt>
 		<dd>Name to show in NodeRED</dd>
 		<dt class="property-type">IP address<span class="property-type">string</span></dt>
-		<dd>IP address or hostname of the device. This is optional but can help</dd>
+		<dd>IP address or hostname of the device, optional</dd>
 		<dt class="property-type">Device ID<span class="property-type">string</span></dt>
 		<dd>Device ID obtained for the device</dd>
 		<dt class="property-type">Device key<span class="property-type">string</span></dt>
 		<dd>Device local key obtained for the device</dd>
 		<dt class="property-type">Version<span class="property-type">string</span></dt>
 		<dd>Tuya protocol version</dd>
+		<dt class="property-type">Polling interval<span class="property-type">number</span></dt>
+		<dd>Status polling interval in seconds (0 = disabled)</dd>
 		<dt class="property-type">Rename schema<span class="property-type">JSON</span></dt>
 		<dd>Rename schema. Rename dps keys to friendly strings</dd>
 		<dt class="property-type">Filter commandByte<span class="property-type">string</span></dt>

@@ -1,54 +1,115 @@
 
-const TuyaDev = require('tuyapi');
-const {keyRename,getHumanTimeStamp,checkValidJSON,filterCommandByte} = require('./lib/utils');
+const TuyaApi = require('tuyapi');
 
 module.exports = function(RED) {
     "use strict";
-    function TuyaNode(config) {
-		RED.nodes.createNode(this,config);
-		var node = this;
-		var set_timeout = true
-		this.Name = config.devName;
-		this.Id = config.devId;
-		this.Key = config.devKey;
-		this.Ip = config.devIp;
-		this.version = config.protocolVer;
-		this.renameSchema = config.renameSchema;
-		this.filterCB = config.filterCB;
-		const dev_info =  {name:this.Name,ip:this.Ip,id:this.Id};
-		const device = new TuyaDev({
-			id: this.Id,
-			key: this.Key,
-			ip: this.Ip,
-			version: this.version});
-
-		function connectToDevice(timeout,req) {
-			device.find({'options': {'timeout':timeout}}).then( () => {
-				node.status({fill:"yellow",shape:"dot",text:"connecting"});
-				node.log(req);
-				device.connect().then( () => {
-				}, (reason) => { 
-					node.status({fill:"red",shape:"ring",text:"failed: " + reason});
-				});
-			});
-		}
-
-		function disconnectDevice(deleted) {
-			set_timeout = deleted ? false : true;
-			device.disconnect();
-		}
-// 
-		function setDevice(req) {
- 
-			if ( req == "request" ) {
-				device.get({"schema":true});
-			} else if ( req == "connect" ) {
-				// node.log('Connection requested by input');
-				connectToDevice(10,'Connection requested by input for device: ' + this.Name );
-			} else if ( req == "disconnect" ) {
-				node.log("Disconnection requested by input for device: " + this.Name)
-				device.disconnect();
-			} else if (req == "toggle") {
+    function TuyaLocal(config) {
+        RED.nodes.createNode(this, config);
+    
+        const node = this;
+        const tuyaDevice = new TuyaApi({
+            id: config.devId,
+            key: config.devKey,
+            ip: config.devIp,
+            version: config.protocolVer
+        });
+    
+        let tryReconnect = true;
+        let connectInterval = null;
+        let statusInterval = null;
+        let deviceInfo = { ip: config.devIp, name: config.devName, id: config.devId };
+       
+    
+        function connect(delay) {
+            //node.log(`Connecting to ${deviceInfo.name} @ ${deviceInfo.ip} (delay: ${delay ? 'yes' : 'no'})`)
+            clearTimeout(connectInterval);
+            clearTimeout(statusInterval);
+            node.status({fill:"red",shape:"dot",text:"finding"});
+  
+            tuyaDevice.find({'options': {'timeout':2000}}).then( () => {
+                node.status({fill:"yellow",shape:"dot",text:"found"});
+                if (delay) {
+                    connectInterval = setTimeout(() => connect(), 5000);
+                } else {
+                    if (tuyaDevice.isConnected()) {
+                        node.log(`Device ${deviceInfo.name} already connected.`);
+                        return;
+                    }
+                    node.status({ fill: 'yellow', shape: 'dot', text: 'connecting...' });
+                    tuyaDevice.connect().then(() => { }).catch(() => { });
+                }
+            }, (reason) => { 
+                node.status({fill:"red",shape:"ring",text:"failed: " + reason});
+            }); 
+           
+        }
+    
+        function disconnect() {
+            clearTimeout(connectInterval);
+            tryReconnect = false;
+            node.log(`Disconnect request for ${deviceInfo.name}`);
+            if (tuyaDevice.isConnected()) {
+                node.log(`Device connected, disconnecting...`);
+                tuyaDevice.disconnect();
+                node.log(`Disconnected`);
+            }
+            node.send({ data: {  deviceinfo:deviceInfo, available: false } });
+        }
+    
+        function handleDisconnection() {
+            clearTimeout(statusInterval);
+            //node.log(`Device ${deviceInfo.name} disconnected, reconnect: ${tryReconnect}`);
+            if (tryReconnect) {
+                connect(true);
+            }
+            node.status({ fill: 'red', shape: 'ring', text: 'disconnected' });
+            node.send({ data: { deviceinfo: deviceInfo, available: false } });
+        }
+    
+        tuyaDevice.on('connected', () => {
+            //node.log(`Device ${deviceInfo.name} connected!`);
+            clearTimeout(connectInterval);
+            //if (config.pollingInterval !== 0) {
+             //   statusInterval = setInterval(() => {
+            //        tuyaDevice.get({ schema: true }).then(() => {}).catch(ex => {
+            //            node.log(`Error while polling status for ${deviceInfo.name}: ${ex.message}`);
+            //        });
+            //    }, config.pollingInterval * 1000);
+            //}
+            node.status({ fill: 'green', shape: 'dot', text: tuyaDevice.device.ip +  ` connected @ ${new Date().toLocaleTimeString()}` });
+            node.send({ data: {  deviceinfo:deviceInfo, available: true } });
+        });
+    
+        tuyaDevice.on('disconnected', () => {
+            //node.log(`Device ${deviceInfo.name} disconnected, reconnect: ${tryReconnect}`);
+            handleDisconnection();
+        });
+        tuyaDevice.on('error', (err) => {
+            //node.log(`Device ${deviceInfo.name} in error state: ${err}, reconnect: ${tryReconnect}`);
+            handleDisconnection();
+        });
+    
+        tuyaDevice.on('data', (data, commandByte) => {
+            if (commandByte) {
+                node.send({ data: {deviceInfo, available: true }, commandByte: commandByte, payload: data });
+            }
+        });
+    
+        node.on('input', (msg) => {
+            let command = msg.payload;
+            if (typeof command === 'string') {
+                switch (command) {
+                    case 'request':
+                        tuyaDevice.get({ schema: true });
+                        break;
+                    case 'connect':
+                        connect();
+                        break;
+                    case 'disconnect':
+                        disconnect();
+                        break;
+                }
+            } else if (req == "toggle") {
 				device.toggle();
 			} else if ( typeof req == "boolean" ) {
 				device.set({set: req}).then( () => {
@@ -64,90 +125,21 @@ module.exports = function(RED) {
 					multiple:true,
 					data: req.data
 				});
-			}
-		}
-
-
-		connectToDevice(10,'Deploy connection request for device ' + this.Name);
-
-
-		device.on('disconnected', () => {
-			this.status({fill:"red",shape:"ring",text:"disconnected from device"});
-			dev_info.available = false
-           //return;
-			var msg = {data:dev_info}
-			node.send(msg);
-			if (set_timeout) {
-				var timeout = setTimeout(connectToDevice, 10000, 10, 'set timeout for re-connect');
-			}
-		});
-
-
-		device.on('connected', () => {
-			this.status({fill:"green",shape:"dot",text: device.device.ip + " at " + getHumanTimeStamp()});
-			try	{
-				clearTimeout(timeout)	
-			} catch(e) {
-				node.log("No timeout defined for " + this.Name + ", probably NodeRED starting")
-			}
-			
-		});
-
-		device.on('error', error => {
-			this.status({fill:"red",shape:"ring",text:"error: " + error});
-			node.warn(error + " device: " + this.Name);
-			if (error.toString().includes("Error from socket")){
-				try	{
-					node.log("error: Trying to clear a possible timeout timer for device " + this.Name )
-					clearTimeout(timeout)	
-				} catch(e) {
-					node.log("error: No timeout defined, device " + this.Name + " is probably not powered")
-				}
-			}
-		});
-
-		device.on('data', (data,commandByte) => {
-			if ("commandByte" !== null ) {
-                
-				dev_info.available = true;
-				if (this.renameSchema !== undefined || this.renameSchema !== null) {
-
-                    try{
-					    data.dps = checkValidJSON(this.renameSchema) ? keyRename(data.dps,JSON.parse(this.renameSchema)) : data.dps;
-                    }catch(e){
-                        node.log("looks like a bad key " + this.Name + " is probably got the wrong key")
-                        return
-                    }
-				}
-				var msg = {data:dev_info,commandByte:commandByte,payload:data};
-				if (this.filterCB !== "") {
-					node.send(filterCommandByte(msg,this.filterCB));
-				} else {
-					node.send(msg);
-				}
-			}
-		});
-
-		node.on('input', function(msg) {
-			setDevice(msg.payload);
-		});
-
-
-		this.on('close', function(removed, done) {
-			if (removed) {
-				  // This node has been deleted disconnect device and not set a timeout for reconnection
-				node.log("Node removal, gracefully disconnect device: " + this.Name);
-				device.isConnected() ? disconnectDevice(true) : node.log("Device " + this.Name + "not connected on removal");
-			} else {
-				// this node is being restarted, disconnect the device gracefully or connection will fail. Do not set a timeout
-				node.log("Node de-deploy, gracefully disconnect device: " + this.Name);
-				device.isConnected() ? disconnectDevice(true) : node.log("Device " + this.Name + "not connected on re-deploy");
-			}
-			done();
-		});
-// 
-	}
-	RED.nodes.registerType("tuya-local-socket",TuyaNode);
+			} else if ('dps' in command) {
+                tuyaDevice.set(command);
+            } else {
+                node.log(`Unknown command for ${deviceInfo.name}: ${command}`);
+            }
+        });
+    
+        node.on('close', (removed, done) => {
+            disconnect();
+            done();
+        });
+    
+        connect();
+    }
+	RED.nodes.registerType("tuya-local-socket",TuyaLocal);
 
     function tuya_auth(config) {
         RED.nodes.createNode(this, config);
