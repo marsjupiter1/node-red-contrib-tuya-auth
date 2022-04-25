@@ -108,22 +108,21 @@ module.exports = function(RED) {
                     case 'disconnect':
                         disconnect();
                         break;
+                    case 'toggle':
+                        device.toggle();
+                        break;
                 }
-            } else if (req == "toggle") {
-				device.toggle();
-			} else if ( typeof req == "boolean" ) {
-				device.set({set: req}).then( () => {
+            } else if ( typeof command == "boolean" ) {
+				tuyaDevice.set({set: req}).then( () => {
 					node.status({fill:"green",shape:"dot",text: 'set success at:' + getHumanTimeStamp()});
 				}, (reason) => {
 					node.status({fill:"red",shape:"dot",text: 'set state failed:' + reason});
 				});
-			} else if ( "dps" in req ) {
-				console.log(req)
-				device.set(req);
-			} else if ( "multiple" in req) {
-				device.set({
+
+			} else if ( "multiple" in command) {
+				tuyaDevice.set({
 					multiple:true,
-					data: req.data
+					data: command.data
 				});
 			} else if ('dps' in command) {
                 tuyaDevice.set(command);
