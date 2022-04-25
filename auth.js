@@ -38,15 +38,15 @@ module.exports = function(RED) {
 			device.disconnect();
 		}
 // 
-		function setDevice(req) {
+		function setDevice(req,self) {
  
 			if ( req == "request" ) {
 				device.get({"schema":true});
 			} else if ( req == "connect" ) {
 				// node.log('Connection requested by input');
-				connectToDevice(10,'Connection requested by input for device: ' + this.Name );
+				connectToDevice(10,'Connection requested by input for device: ' + self.Name );
 			} else if ( req == "disconnect" ) {
-				node.log("Disconnection requested by input for device: " + this.Name)
+				node.log("Disconnection requested by input for device: " + self.Name)
 				device.disconnect();
 			} else if (req == "toggle") {
 				device.toggle();
@@ -78,6 +78,11 @@ module.exports = function(RED) {
 			var msg = {data:dev_info}
 			node.send(msg);
 			if (set_timeout) {
+                try	{
+                    clearTimeout(timeout)	
+                } catch(e) {
+                    //node.log("No timeout defined for " + this.Name + ", probably NodeRED starting")
+                }
 				var timeout = setTimeout(connectToDevice, 10000, 10, 'set timeout for re-connect');
 			}
 		});
@@ -88,14 +93,17 @@ module.exports = function(RED) {
 			try	{
 				clearTimeout(timeout)	
 			} catch(e) {
-				node.log("No timeout defined for " + this.Name + ", probably NodeRED starting")
+				//node.log("No timeout defined for " + this.Name + ", probably NodeRED starting")
 			}
 			
 		});
 
 		device.on('error', error => {
 			this.status({fill:"red",shape:"ring",text:"error: " + error});
-			node.warn(error + " device: " + this.Name);
+            dev_info.available=false;
+            var msg = {data:dev_info,error:error};
+            node.send(msg);
+			node.log(error + " device: " + this.Name);
 			if (error.toString().includes("Error from socket")){
 				try	{
 					node.log("error: Trying to clear a possible timeout timer for device " + this.Name )
@@ -115,7 +123,7 @@ module.exports = function(RED) {
                     try{
 					    data.dps = checkValidJSON(this.renameSchema) ? keyRename(data.dps,JSON.parse(this.renameSchema)) : data.dps;
                     }catch(e){
-                        node.log("looks like a bad key " + this.Name + " is probably got the wrong key")
+                        node.warn("looks like a bad key " + this.Name + " has probably got the wrong key")
                         return
                     }
 				}
@@ -129,7 +137,7 @@ module.exports = function(RED) {
 		});
 
 		node.on('input', function(msg) {
-			setDevice(msg.payload);
+			setDevice(msg.payload,this);
 		});
 
 
