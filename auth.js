@@ -90,18 +90,32 @@ module.exports = function(RED) {
         });
     
         tuyaDevice.on('data', (data, commandByte) => {
+            var msg = {}
+            if ("in_msg" in node){
+                msg = node.in_msg;
+            }else{
+                //node.warn("no message"+node.in_msg);
+            }
+            //node.warn(data);
+            msg.data = {deviceInfo, available: true };
+            msg.commandByte = commandByte;
+            msg.payload = data;
             if (commandByte) {
-                node.send({ data: {deviceInfo, available: true }, commandByte: commandByte, payload: data });
+                node.send( msg);
             }
         });
     
         node.on('input', (msg) => {
+            node.in_msg = msg;
             let command = msg.payload;
             if (typeof command === 'string') {
                 switch (command) {
                     case 'request':
                         tuyaDevice.get({ schema: true });
                         break;
+                    case 'request1':
+                        tuyaDevice.get({ schema: false });
+                        break;    
                     case 'connect':
                         connect();
                         break;
@@ -109,7 +123,7 @@ module.exports = function(RED) {
                         disconnect();
                         break;
                     case 'toggle':
-                        device.toggle();
+                        tuyaDevice.toggle();
                         break;
                 }
             } else if ( typeof command == "boolean" ) {
