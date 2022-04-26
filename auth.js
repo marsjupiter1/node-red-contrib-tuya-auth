@@ -60,6 +60,7 @@ module.exports = function(RED) {
             clearTimeout(statusInterval);
             //node.log(`Device ${deviceInfo.name} disconnected, reconnect: ${tryReconnect}`);
             if (tryReconnect) {
+                //node.warn("reconnect following disconnect");
                 connect(true);
             }
             node.status({ fill: 'red', shape: 'ring', text: 'disconnected' });
@@ -93,8 +94,11 @@ module.exports = function(RED) {
             var msg = {}
             if ("in_msg" in node){
                 msg = node.in_msg;
+                msg.called = true;
+                delete node.in_msg;
             }else{
                 //node.warn("no message"+node.in_msg);
+                msg.called = false;
             }
             //node.warn(data);
             msg.data = {deviceInfo, available: true };
@@ -117,6 +121,7 @@ module.exports = function(RED) {
                         tuyaDevice.get({ schema: false });
                         break;    
                     case 'connect':
+                        //node.warn("connect command");
                         connect();
                         break;
                     case 'disconnect':
@@ -139,6 +144,7 @@ module.exports = function(RED) {
 					data: command.data
 				});
 			} else if ('dps' in command) {
+                //node.warn("set "+command.dps);
                 tuyaDevice.set(command);
             } else {
                 node.log(`Unknown command for ${deviceInfo.name}: ${command}`);
