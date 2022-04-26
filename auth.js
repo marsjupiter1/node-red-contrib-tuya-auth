@@ -115,10 +115,30 @@ module.exports = function(RED) {
             if (typeof command === 'string') {
                 switch (command) {
                     case 'request':
-                        tuyaDevice.get({ schema: true });
+                        if (tuyaDevice.isConnected()){
+                             try{
+                                tuyaDevice.get({ schema: true });
+                             }catch(e){
+                                 msg.error = e;
+                                node.send(msg);
+                            }
+                        }else{
+                            msg.error = `request not made as not connected ${deviceInfo.name}`;
+                            node.send(msg);
+                        } 
                         break;
                     case 'request1':
-                        tuyaDevice.get({ schema: false });
+                        if (tuyaDevice.isConnected()){
+                            try{
+                               tuyaDevice.get({ schema: false });
+                            }catch(e){
+                                msg.error = e;
+                               node.send(msg);
+                           }
+                       }else{
+                           msg.error = `request not made as not connected ${deviceInfo.name}`;
+                           node.send(msg);
+                       } 
                         break;    
                     case 'connect':
                         //node.warn("connect command");
@@ -463,11 +483,31 @@ module.exports = function(RED) {
             if (typeof command === 'string') {
                 switch (command) {
                     case 'request':
-                        node.tuyaDevice.get({ schema: true });
+                        if (node.tuyaDevice.isConnected()){
+                          try{
+                              node.tuyaDevice.get({ schema: true });
+                          }catch(e){
+                             msg.error = e;
+                             node.send(msg);
+                            }
+                        }else{
+                            msg.error = `request not made as not connected ${deviceInfo.name}`;
+                            node.send(msg);
+                        }
                         break;
                     case 'request1':
-                        node.tuyaDevice.get({ schema: false });
-                        break;    
+                        if (node.tuyaDevice.isConnected()){
+                            try{
+                                node.tuyaDevice.get({ schema: false });
+                            }catch(e){
+                               msg.error = e;
+                               node.send(msg);
+                              }
+                          }else{
+                              msg.error = `request not made as not connected ${deviceInfo.name}`;
+                              node.send(msg);
+                          }
+                          break;  
                     case 'connect':{
                         var config = node.config;
                         //node.warn("id:"+ msg.id)
