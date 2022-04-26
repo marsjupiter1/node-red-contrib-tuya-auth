@@ -1,0 +1,131 @@
+[
+    {
+        "id": "1cf9332ef414bbe7",
+        "type": "inject",
+        "z": "71f803001b268706",
+        "name": "request",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "16",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "10",
+        "topic": "",
+        "payload": "request",
+        "payloadType": "str",
+        "x": 640,
+        "y": 500,
+        "wires": [
+            [
+                "f09c506461ad80b9"
+            ]
+        ]
+    },
+    {
+        "id": "dc630a22d7f457ff",
+        "type": "function",
+        "z": "71f803001b268706",
+        "name": "",
+        "func": "msg.device_id=global.get(\"amp_device_id\");\nmsg.topic = msg.device_id;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1000,
+        "y": 500,
+        "wires": [
+            [
+                "81c9fdcd458650f0",
+                "40c744a21317c3d4"
+            ]
+        ]
+    },
+    {
+        "id": "a363cfcf13b7d59a",
+        "type": "tuya-local-socket",
+        "z": "71f803001b268706",
+        "devName": "amp",
+        "devIp": "192.168.68.106",
+        "devId": "xxxxxxxxxxxxxxxxxx",
+        "devKey": "xxxxxxxxxxxxxx",
+        "protocolVer": "3.3",
+        "renameSchema": "",
+        "filterCB": "",
+        "x": 770,
+        "y": 440,
+        "wires": [
+            [
+                "4c8adcf4afa86649"
+            ]
+        ]
+    },
+    {
+        "id": "5cb53b926981b67a",
+        "type": "link in",
+        "z": "71f803001b268706",
+        "name": "amp_socket",
+        "links": [],
+        "x": 645,
+        "y": 440,
+        "wires": [
+            [
+                "a363cfcf13b7d59a"
+            ]
+        ]
+    },
+    {
+        "id": "c867e2d1383cae51",
+        "type": "link out",
+        "z": "71f803001b268706",
+        "name": "amp_socket_return",
+        "mode": "return",
+        "links": [],
+        "x": 1025,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "f09c506461ad80b9",
+        "type": "link call",
+        "z": "71f803001b268706",
+        "name": "",
+        "links": [
+            "5cb53b926981b67a"
+        ],
+        "timeout": "30",
+        "x": 850,
+        "y": 500,
+        "wires": [
+            [
+                "dc630a22d7f457ff"
+            ]
+        ]
+    },
+    {
+        "id": "4c8adcf4afa86649",
+        "type": "function",
+        "z": "71f803001b268706",
+        "name": "",
+        "func": "if (!msg.called){\n    return;\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 900,
+        "y": 440,
+        "wires": [
+            [
+                "c867e2d1383cae51"
+            ]
+        ]
+    }
+]
