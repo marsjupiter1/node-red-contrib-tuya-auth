@@ -1,4 +1,5 @@
 
+const { maxHeaderSize } = require('http');
 const TuyaApi = require('tuyapi');
 
 module.exports = function(RED) {
@@ -78,7 +79,17 @@ module.exports = function(RED) {
             //    }, config.pollingInterval * 1000);
             //}
             node.status({ fill: 'green', shape: 'dot', text: tuyaDevice.device.ip +  ` connected @ ${new Date().toLocaleTimeString()}` });
-            node.send({ data: {  deviceinfo:deviceInfo, available: true } });
+            var msg = {}
+            if ("in_msg" in node){
+                msg = node.in_msg;
+                msg.called = true;
+                delete node.in_msg;
+            }else{
+                msg.called = false;
+            }
+            msg.data = {  deviceinfo:deviceInfo, available: true }
+            node.send(msg);
+          
         });
     
         tuyaDevice.on('disconnected', () => {
@@ -544,7 +555,16 @@ module.exports = function(RED) {
                             //    }, config.pollingInterval * 1000);
                             //}
                             node.status({ fill: 'green', shape: 'dot', text: tuyaDevice.device.ip +  ` connected @ ${new Date().toLocaleTimeString()}` });
-                            node.send({ data: {  deviceinfo:deviceInfo, available: true } });
+                            var msg = {}
+                            if ("in_msg" in node){
+                                msg = node.in_msg;
+                                msg.called = true;
+                                delete node.in_msg;
+                            }else{
+                                msg.called = false;
+                            }
+                            msg.data = {  deviceinfo:deviceInfo, available: true }
+                            node.send(msg);
                         });
                     
                         tuyaDevice.on('disconnected', () => {
