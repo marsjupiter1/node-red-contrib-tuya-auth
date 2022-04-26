@@ -442,8 +442,18 @@ module.exports = function(RED) {
                 done();
             });
 
-        
-    
+            function disconnect() {
+                clearTimeout(connectInterval);
+                tryReconnect = false;
+                node.log(`Disconnect request for ${deviceInfo.name}`);
+                if (node.tuyaDevice.isConnected()) {
+                    node.log(`Device connected, disconnecting...`);
+                    node.tuyaDevice.disconnect();
+                    node.log(`Disconnected`);
+                }
+                node.send({ data: {  deviceinfo:deviceInfo, available: false } });
+            }
+            config = node.config;
             let tryReconnect = true;
             let connectInterval = null;
             let statusInterval = null;
@@ -456,10 +466,22 @@ module.exports = function(RED) {
                         node.tuyaDevice.get({ schema: true });
                         break;
                     case 'request1':
-                        tuyaDevice.get({ schema: false });
+                        node.tuyaDevice.get({ schema: false });
                         break;    
                     case 'connect':{
-                        config = node.config;
+                        var config = node.config;
+                        //node.warn("id:"+ msg.id)
+                        if (msg.hasOwnProperty("ip")){
+                        
+                            config.devIp = msg.ip;
+                        }
+                        if (msg.hasOwnProperty("key")){
+                            config.devKey = msg.key;
+                        }
+                        if (msg.hasOwnProperty("id")){
+
+                            config.devId = msg.id;
+                        }
                         const tuyaDevice = new TuyaApi({
                             id: config.devId,
                             key: config.devKey,
@@ -531,17 +553,7 @@ module.exports = function(RED) {
                            
                         }
                     
-                        function disconnect() {
-                            clearTimeout(connectInterval);
-                            tryReconnect = false;
-                            node.log(`Disconnect request for ${deviceInfo.name}`);
-                            if (tuyaDevice.isConnected()) {
-                                node.log(`Device connected, disconnecting...`);
-                                tuyaDevice.disconnect();
-                                node.log(`Disconnected`);
-                            }
-                            node.send({ data: {  deviceinfo:deviceInfo, available: false } });
-                        }
+ 
                     
                         function handleDisconnection() {
                             clearTimeout(statusInterval);
@@ -561,7 +573,7 @@ module.exports = function(RED) {
                         disconnect();
                         break;
                     case 'toggle':
-                        tuyaDevice.toggle();
+                        node.tuyaDevice.toggle();
                         break;
                     
                 }
