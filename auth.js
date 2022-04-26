@@ -110,6 +110,7 @@ module.exports = function(RED) {
         });
     
         node.on('input', (msg) => {
+            msg.called = true;
             node.in_msg = msg;
             let command = msg.payload;
             if (typeof command === 'string') {
@@ -478,12 +479,15 @@ module.exports = function(RED) {
             let connectInterval = null;
             let statusInterval = null;
             let deviceInfo = { ip: config.devIp, name: config.devName, id: config.devId };
+            msg.called = true; // for the dynamic socket we are always called so make sure there is return node info
+ 
             node.in_msg = msg;
+
             let command = msg.payload;
             if (typeof command === 'string') {
                 switch (command) {
                     case 'request':
-                        if (node.tuyaDevice.isConnected()){
+                        if (node.tuyaDevice!== undefined && node.tuyaDevice.isConnected()){
                           try{
                               node.tuyaDevice.get({ schema: true });
                           }catch(e){
@@ -496,7 +500,7 @@ module.exports = function(RED) {
                         }
                         break;
                     case 'request1':
-                        if (node.tuyaDevice.isConnected()){
+                        if (node.tuyaDevice!== undefined && node.tuyaDevice.isConnected()){
                             try{
                                 node.tuyaDevice.get({ schema: false });
                             }catch(e){
