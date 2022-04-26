@@ -424,6 +424,8 @@ module.exports = function(RED) {
 
 
     function TuyaDLocal(config) {
+        var node = this;
+        node.config = config;
         RED.nodes.createNode(this, config);
     
      
@@ -479,12 +481,16 @@ module.exports = function(RED) {
             }
         
 
-            const node = this;
             const tuyaDevice = new TuyaApi({
                 id: config.devId,
                 key: config.devKey,
                 ip: config.devIp,
                 version: config.protocolVer
+            });
+
+            node.on('close', (removed, done) => {
+                disconnect();
+                done();
             });
             tuyaDevice.on('connected', () => {
                 //node.log(`Device ${deviceInfo.name} connected!`);
@@ -572,10 +578,7 @@ module.exports = function(RED) {
             }
         });
     
-        node.on('close', (removed, done) => {
-            disconnect();
-            done();
-        });
+ 
     
     }
 	RED.nodes.registerType("tuya-local-dsocket",TuyaDLocal);
