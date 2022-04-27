@@ -629,7 +629,7 @@ module.exports = function(RED) {
                             clearTimeout(statusInterval);
                             node.status({fill:"red",shape:"dot",text:"finding"});
                   
-                            tuyaDevice.find({'options': {'timeout':3000}}).then( () => {
+                            tuyaDevice.find({'options': {'timeout':4000}}).then( () => {
                                 node.status({fill:"yellow",shape:"dot",text:"found"});
                                 if (delay) {
                                     connectInterval = setTimeout(() => connect(), 5000);
@@ -702,16 +702,17 @@ module.exports = function(RED) {
     function TuyaMLocal(config) {
         var node = this;
         node.config = config;
-        node.tuyaDevices={};
+      
+      
         RED.nodes.createNode(this, config);
-    
-     
+
+        node.tuyaDevices={};
     
 
     
         node.on('input', (msg) => {
 
-        
+            node.warn(node.tuyaDevices);
             
 
             node.on('close', (removed, done) => {
@@ -726,7 +727,7 @@ module.exports = function(RED) {
             function disconnect(tuyaDevice) {
                 clearTimeout(connectInterval);
                 tryReconnect = false;
-                node.log(`Disconnect request for ${deviceInfo.name}`);
+                node.log(`Disconnect request for ${tuyaDevice.device.id}`);
                 if (tuyaDevice.isConnected()) {
                     log(`Device connected, disconnecting...`);
                     tuyaDevice.disconnect();
@@ -741,14 +742,14 @@ module.exports = function(RED) {
                     //node.warn("no message"+node.in_msg);
                     msg.called = false;
                 }
-                msg.data = {  deviceinfo:deviceInfo, available: false };
+                msg.data = {   available: false };
                 node.send(msg);
                 
             }
-            tuyaDevice = node.tuyaDevices[msg.id];
-            let tryReconnect = true;
-            let connectInterval = null;
-            let statusInterval = null;
+            var tuyaDevice = node.tuyaDevices[msg.id];
+            tuyaDevice.tryReconnect = true;
+            tuyaDevice.connectInterval =null;
+            tuyaDevice.statusInterval =null;
             msg.called = true; // for the dynamic socket we are always called so make sure there is return node info
  
             node.in_msg = msg;
@@ -768,7 +769,7 @@ module.exports = function(RED) {
                             
                             }
                         }else{
-                            msg.error = `request not made as not connected ${tuyaDevice.device.id}`;
+                            msg.error = `request not made as not connected ${msg.id}`;
                             node.send(msg);
                           
                         }
@@ -776,18 +777,27 @@ module.exports = function(RED) {
                     case 'request1':
                         if (tuyaDevice!== undefined && tuyaDevice.isConnected()){
                             try{
-                                node.tuyaDevice.get({ schema: false });
+                                tuyaDevice.get({ schema: false });
                             }catch(e){
                                msg.error = e;
                                node.send(msg);
                                
                               }
                           }else{
-                              msg.error = `request not made as not connected ${tuyaDevice.device.id}`;
+                              msg.error = `request not made as not connected ${msg.id}`;
                               node.send(msg);
                              
                           }
                           break;  
+                    case 'status'  :
+                        var status={};  
+                        Object.keys(node.tuyaDevices).forEach(function(key) {
+                            var tuyaDevice = node.tuyaDevices[key];
+                            status[tuyaDevice.device.id]= {ip: tuyaDevice.device.ip,available: tuyaDevice.isConnected()}
+                         });
+                         msg.payload=status;
+                         node.send(msg);
+                          break;                          
                     case 'connect':{
                         var config = node.config;
        
@@ -817,7 +827,7 @@ module.exports = function(RED) {
                             }else{
                                 msg.called = false;
                             }
-                            msg.data = {  deviceinfo:deviceInfo, available: true }
+                            msg.data = {   available: true }
                             node.send(msg);
     
                         });
@@ -839,7 +849,7 @@ module.exports = function(RED) {
                                 msg.called = false;
                             }
                             //node.warn(data);
-                            msg.data = {deviceInfo, available: true };
+                            msg.data = { available: true };
                             msg.commandByte = commandByte;
                             msg.payload = data;
                             if (commandByte) {
@@ -847,16 +857,17 @@ module.exports = function(RED) {
                                
                             }
                         }); 
-                        function connect(tuyadevice,delay) {
+                        function connect(tuyaDevice,delay) {
                             //node.log(`Connecting to ${deviceInfo.name} @ ${deviceInfo.ip} (delay: ${delay ? 'yes' : 'no'})`)
-                            clearTimeout(connectInterval);
-                            clearTimeout(statusInterval);
+                          
+                            clearTimeout(tuyaDevice.connectInterval);
+                            clearTimeout(tuyaDevice.statusInterval);
                             node.status({fill:"red",shape:"dot",text:"finding"});
                   
-                            tuyaDevice.find({'options': {'timeout':3000}}).then( () => {
+                            tuyaDevice.find({'options': {'timeout':4000}}).then( () => {
                                 node.status({fill:"yellow",shape:"dot",text:"found"});
                                 if (delay) {
-                                    connectInterval = setTimeout(() => connect(), 5000);
+                                    tuyaDevice.connectInterval = setTimeout(() => connect(tuyaDevice), 5000);
                                 } else {
                                     if (tuyaDevice.isConnected()) {
                                         node.log(`Device ${deviceInfo.name} already connected.`);
@@ -874,22 +885,23 @@ module.exports = function(RED) {
  
                     
                         function handleDisconnection(tuyaDevice) {
-                            clearTimeout(statusInterval);
+                            clearTimeout(stuyaDevice.tatusInterval);
                             //node.log(`Device ${deviceInfo.name} disconnected, reconnect: ${tryReconnect}`);
-                            if (tryReconnect) {
+                            if (tuyaDevice.tryReconnect) {
                                 //node.warn("reconnect following disconnect");
                                 connect(tuyaDevice,true);
                             }
                             node.status({ fill: 'red', shape: 'ring', text: 'disconnected' });
-                            node.send({ data: { deviceinfo: deviceInfo, available: false } });
+                            node.send({ data: {  available: false } });
                           
                         } 
-                        //node.warn("connect command");
-                        connect(tuyaDevice);
+                        //
+ 
+                        connect(tuyaDevice,0);
                         break;
                     }
                     case 'disconnect':
-                        disconnect();
+                        disconnect(tuyaDevice);
                         break;
                     case 'toggle':
                         tuyaDevice.toggle();
