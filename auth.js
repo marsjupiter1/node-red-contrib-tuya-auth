@@ -27,7 +27,7 @@ module.exports = function(RED) {
             clearTimeout(statusInterval);
             node.status({fill:"red",shape:"dot",text:"finding"});
   
-            tuyaDevice.find({'options': {'timeout':2000}}).then( () => {
+            tuyaDevice.find({'options': {'timeout':3000}}).then( () => {
                 node.status({fill:"yellow",shape:"dot",text:"found"});
                 if (delay) {
                     connectInterval = setTimeout(() => connect(), 5000);
@@ -40,7 +40,7 @@ module.exports = function(RED) {
                     tuyaDevice.connect().then(() => { }).catch(() => { });
                 }
             }, (reason) => { 
-                node.status({fill:"red",shape:"ring",text:"failed: " + reason});
+                node.status({fill:"red",shape:"ring",text:"failed: " + reason+ "id:"+tuyaDevice.id+ "ip:"+tuyaDevice.ip});
             }); 
            
         }
@@ -54,7 +54,18 @@ module.exports = function(RED) {
                 tuyaDevice.disconnect();
                 node.log(`Disconnected`);
             }
-            node.send({ data: {  deviceinfo:deviceInfo, available: false } });
+            var msg = {}
+            if ("in_msg" in node){
+                msg = node.in_msg;
+                msg.called = true;
+                delete node.in_msg;
+            }else{
+                //node.warn("no message"+node.in_msg);
+                msg.called = false;
+            }
+            msg.data = {  deviceinfo:deviceInfo, available: false };
+            node.send(msg);
+        
         }
     
         function handleDisconnection() {
@@ -133,10 +144,12 @@ module.exports = function(RED) {
                              }catch(e){
                                  msg.error = e;
                                 node.send(msg);
+                                delete node.in_msg;
                             }
                         }else{
                             msg.error = `request not made as not connected ${deviceInfo.name}`;
                             node.send(msg);
+                            delete node.in_msg;
                         } 
                         break;
                     case 'request1':
@@ -146,10 +159,12 @@ module.exports = function(RED) {
                             }catch(e){
                                 msg.error = e;
                                node.send(msg);
+                               delete node.in_msg;
                            }
                        }else{
                            msg.error = `request not made as not connected ${deviceInfo.name}`;
                            node.send(msg);
+                           delete node.in_msg;
                        } 
                         break;    
                     case 'connect':
@@ -483,7 +498,18 @@ module.exports = function(RED) {
                     node.tuyaDevice.disconnect();
                     node.log(`Disconnected`);
                 }
-                node.send({ data: {  deviceinfo:deviceInfo, available: false } });
+                var msg = {}
+                if ("in_msg" in node){
+                    msg = node.in_msg;
+                    msg.called = true;
+                    delete node.in_msg;
+                }else{
+                    //node.warn("no message"+node.in_msg);
+                    msg.called = false;
+                }
+                msg.data = {  deviceinfo:deviceInfo, available: false };
+                node.send(msg);
+                
             }
             config = node.config;
             let tryReconnect = true;
@@ -504,10 +530,12 @@ module.exports = function(RED) {
                           }catch(e){
                              msg.error = e;
                              node.send(msg);
+                            
                             }
                         }else{
                             msg.error = `request not made as not connected ${deviceInfo.name}`;
                             node.send(msg);
+                          
                         }
                         break;
                     case 'request1':
@@ -517,10 +545,12 @@ module.exports = function(RED) {
                             }catch(e){
                                msg.error = e;
                                node.send(msg);
+                               
                               }
                           }else{
                               msg.error = `request not made as not connected ${deviceInfo.name}`;
                               node.send(msg);
+                             
                           }
                           break;  
                     case 'connect':{
@@ -565,6 +595,7 @@ module.exports = function(RED) {
                             }
                             msg.data = {  deviceinfo:deviceInfo, available: true }
                             node.send(msg);
+    
                         });
                     
                         tuyaDevice.on('disconnected', () => {
@@ -579,10 +610,8 @@ module.exports = function(RED) {
                             var msg = {}
                             if ("in_msg" in node){
                                 msg = node.in_msg;
-                                msg.called = true;
                                 delete node.in_msg;
                             }else{
-                                //node.warn("no message"+node.in_msg);
                                 msg.called = false;
                             }
                             //node.warn(data);
@@ -591,6 +620,7 @@ module.exports = function(RED) {
                             msg.payload = data;
                             if (commandByte) {
                                 node.send( msg);
+                               
                             }
                         }); 
                         function connect(delay) {
@@ -599,7 +629,7 @@ module.exports = function(RED) {
                             clearTimeout(statusInterval);
                             node.status({fill:"red",shape:"dot",text:"finding"});
                   
-                            tuyaDevice.find({'options': {'timeout':2000}}).then( () => {
+                            tuyaDevice.find({'options': {'timeout':3000}}).then( () => {
                                 node.status({fill:"yellow",shape:"dot",text:"found"});
                                 if (delay) {
                                     connectInterval = setTimeout(() => connect(), 5000);
@@ -612,7 +642,7 @@ module.exports = function(RED) {
                                     tuyaDevice.connect().then(() => { }).catch(() => { });
                                 }
                             }, (reason) => { 
-                                node.status({fill:"red",shape:"ring",text:"failed: " + reason});
+                                node.status({fill:"red",shape:"ring",text:"failed: " + reason + "id:"+tuyaDevice.id+ "ip:"+tuyaDevice.ip});
                             }); 
                            
                         }
@@ -628,6 +658,7 @@ module.exports = function(RED) {
                             }
                             node.status({ fill: 'red', shape: 'ring', text: 'disconnected' });
                             node.send({ data: { deviceinfo: deviceInfo, available: false } });
+                          
                         } 
                         //node.warn("connect command");
                         connect();
