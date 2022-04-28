@@ -1,0 +1,375 @@
+[
+    {
+        "id": "d5cc41388ac44c43",
+        "type": "inject",
+        "z": "71f803001b268706",
+        "name": "incense",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "device_id",
+                "v": "incense_device_id",
+                "vt": "global"
+            }
+        ],
+        "repeat": "60",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "20",
+        "topic": "",
+        "payload": "request1",
+        "payloadType": "str",
+        "x": 260,
+        "y": 1640,
+        "wires": [
+            [
+                "00c03024bf18afa1"
+            ]
+        ]
+    },
+    {
+        "id": "00c03024bf18afa1",
+        "type": "link call",
+        "z": "71f803001b268706",
+        "name": "get_incense status",
+        "links": [
+            "fa7e507cac1b8320"
+        ],
+        "timeout": "30",
+        "x": 450,
+        "y": 1640,
+        "wires": [
+            [
+                "c74e11cebbeb95ce"
+            ]
+        ]
+    },
+    {
+        "id": "c74e11cebbeb95ce",
+        "type": "function",
+        "z": "71f803001b268706",
+        "name": "get status",
+        "func": "if (!msg.hasOwnProperty(\"payload\")){\n    return;\n}\nif (!msg.payload.hasOwnProperty(\"dps\")){\n    return;\n}\nmsg.payload = msg.payload.dps[1]\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 1640,
+        "wires": [
+            [
+                "53301900fb9e0792"
+            ]
+        ]
+    },
+    {
+        "id": "53301900fb9e0792",
+        "type": "link out",
+        "z": "71f803001b268706",
+        "name": "incense on",
+        "mode": "link",
+        "links": [
+            "75edad2dcdab97e6"
+        ],
+        "x": 815,
+        "y": 1640,
+        "wires": []
+    },
+    {
+        "id": "87a053141c3116d1",
+        "type": "inject",
+        "z": "71f803001b268706",
+        "name": "status",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "10",
+        "topic": "",
+        "payload": "status",
+        "payloadType": "str",
+        "x": 210,
+        "y": 1960,
+        "wires": [
+            [
+                "9f39fb5064e8fa80"
+            ]
+        ]
+    },
+    {
+        "id": "b4df8ef51628635e",
+        "type": "debug",
+        "z": "71f803001b268706",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1350,
+        "y": 1960,
+        "wires": []
+    },
+    {
+        "id": "c5165e0c77ae6b30",
+        "type": "function",
+        "z": "71f803001b268706",
+        "name": "",
+        "func": "if (msg.error !== undefined){\n    if (msg.error == \"already processing message\"){\n        var diff = msg.timestamp - msg.old.timestamp;\n        node.warn(diff);\n        node.warn(msg.old);\n        return msg;\n    }\n}\nif (!msg.called){\n    return;\n}\nif (msg.block){\n    return;\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 860,
+        "y": 1760,
+        "wires": [
+            [
+                "bd466a80a504842a",
+                "3f3759091e2f1205"
+            ]
+        ]
+    },
+    {
+        "id": "c3ccc5eef888833a",
+        "type": "tuya-local-msocket",
+        "z": "71f803001b268706",
+        "devName": "msocket",
+        "protocolVer": "3.3",
+        "pollingInterval": "50",
+        "renameSchema": "",
+        "filterCB": "",
+        "x": 636,
+        "y": 1761,
+        "wires": [
+            [
+                "c5165e0c77ae6b30"
+            ]
+        ]
+    },
+    {
+        "id": "bd466a80a504842a",
+        "type": "link out",
+        "z": "71f803001b268706",
+        "name": "",
+        "mode": "return",
+        "links": [],
+        "x": 1115,
+        "y": 1760,
+        "wires": []
+    },
+    {
+        "id": "9f39fb5064e8fa80",
+        "type": "link call",
+        "z": "71f803001b268706",
+        "name": "msocket 3.3",
+        "links": [
+            "462bc86fb056a72d"
+        ],
+        "timeout": "30",
+        "x": 630,
+        "y": 1960,
+        "wires": [
+            [
+                "820707d1bd229628"
+            ]
+        ]
+    },
+    {
+        "id": "462bc86fb056a72d",
+        "type": "link in",
+        "z": "71f803001b268706",
+        "name": "msocket 3.3",
+        "links": [],
+        "x": 225,
+        "y": 1760,
+        "wires": [
+            [
+                "ec93a26421b5fc3a"
+            ]
+        ]
+    },
+    {
+        "id": "3f3759091e2f1205",
+        "type": "function",
+        "z": "71f803001b268706",
+        "name": "reconnect",
+        "func": "if (msg.data == undefined){\n    return;\n}\nif (msg.data.available == true){\n    return;\n}\n\nvar device_id = global.get(msg.data.id);\nif (device_id === undefined){\n    node.warn(\"missing id\");\n    node.warn(msg);\n    return;\n}  \nmsg.id = global.get(device_id);\nmsg.key = global.get(device_id+\"_local_key\");\nmsg.ip = global.get(device_id+\"_ip\");\nmsg.topic=device_id;\nmsg.payload=\"connect\";\nmsg.reconnect = true;\nmsg.block = true;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 940,
+        "y": 1900,
+        "wires": [
+            [
+                "3bc4e70bc93e820e"
+            ]
+        ]
+    },
+    {
+        "id": "3bc4e70bc93e820e",
+        "type": "delay",
+        "z": "71f803001b268706",
+        "name": "",
+        "pauseType": "timed",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "30",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": true,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 1200,
+        "y": 1900,
+        "wires": [
+            [
+                "c3ccc5eef888833a",
+                "349f29c3184fff7e"
+            ]
+        ]
+    },
+    {
+        "id": "349f29c3184fff7e",
+        "type": "debug",
+        "z": "71f803001b268706",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "topic",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1300,
+        "y": 1800,
+        "wires": []
+    },
+    {
+        "id": "820707d1bd229628",
+        "type": "split",
+        "z": "71f803001b268706",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "device_id",
+        "x": 830,
+        "y": 1960,
+        "wires": [
+            [
+                "e85184e6d63cfb27"
+            ]
+        ]
+    },
+    {
+        "id": "e85184e6d63cfb27",
+        "type": "function",
+        "z": "71f803001b268706",
+        "name": "",
+        "func": "msg.payload.id = global.get(msg.device_id);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1000,
+        "y": 1960,
+        "wires": [
+            [
+                "b4df8ef51628635e"
+            ]
+        ]
+    },
+    {
+        "id": "12e84b82adc35f39",
+        "type": "join",
+        "z": "71f803001b268706",
+        "name": "",
+        "mode": "auto",
+        "build": "object",
+        "property": "payload",
+        "propertyType": "msg",
+        "key": "topic",
+        "joiner": "\\n",
+        "joinerType": "str",
+        "accumulate": true,
+        "timeout": "",
+        "count": "",
+        "reduceRight": false,
+        "reduceExp": "",
+        "reduceInit": "",
+        "reduceInitType": "",
+        "reduceFixup": "",
+        "x": 1190,
+        "y": 1960,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e8f8346c9c18d374",
+        "type": "debug",
+        "z": "71f803001b268706",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 950,
+        "y": 1700,
+        "wires": []
+    },
+    {
+        "id": "ec93a26421b5fc3a",
+        "type": "change",
+        "z": "71f803001b268706",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "timestamp",
+                "pt": "msg",
+                "to": "",
+                "tot": "date"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 410,
+        "y": 1760,
+        "wires": [
+            [
+                "c3ccc5eef888833a"
+            ]
+        ]
+    }
+]
