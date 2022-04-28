@@ -16,6 +16,8 @@ node tuya-socket that communicates with tuya devices directly on the local area 
 
 node tuya-dsocket is a variant on node tuya-socket that allows you to override localkey (key), device id (is) and device ip (ip) in the msg. It's a variant and not a replacement in that to use it, you have to send it a "connect" message before it will connect. So it's slightly more complex to use, but it does allow you to remove your secrets from individual nodes into a common setup node.
 
+node-tuya-msocket is able to handle multiple sockets when different ids and keys are passed in. This makes it possible to use in a link-call so you can add general purpose logic to it. There is one important difference, since this is aimed at allowing you to see errors and make reconnections, it does not connect automatically you have to make a connect request.
+
 In practical use you'd create a sub flow for the post and get requests that populates the secret data and will try and auth again if there is an error.
 
 See the flows files for example usage
