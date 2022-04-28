@@ -906,7 +906,8 @@ module.exports = function(RED) {
                                 node.send(msg)
                                 return;
                             }else{
-                                //node.tuyaDevices[ msg.id].disconnect();
+                                node.tuyaDevices[ msg.id].disconnect();
+                                delete node.tuyaDevices[ msg.id];
                                 //node.warn("delete old device");
                                
                             }
