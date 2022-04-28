@@ -70,7 +70,7 @@ module.exports = function(RED) {
                 //node.warn("no message"+node.in_msg);
                 msg.called = false;
             }
-            msg.data = {  deviceinfo:deviceInfo, available: false };
+            msg.data = {  deviceinfo:deviceInfo, available: false, event:"disconnect" };
             node.send(msg);
         
         }
@@ -82,8 +82,20 @@ module.exports = function(RED) {
                 //node.warn("reconnect following disconnect");
                 connect(true);
             }
+
+
             node.status({ fill: 'red', shape: 'ring', text: 'disconnected' });
-            node.send({ data: { deviceinfo: deviceInfo, available: false } });
+            var msg = {}
+            if ("in_msg" in node){
+                msg = node.in_msg;
+                msg.called = true;
+                delete node.in_msg;
+            }else{
+                //node.warn("no message"+node.in_msg);
+                msg.called = false;
+            }
+            msg.data = {  deviceinfo:deviceInfo, available: false, event:"disconnection" };
+            node.send(msg);
         }
     
         tuyaDevice.on('connected', () => {
@@ -105,7 +117,7 @@ module.exports = function(RED) {
             }else{
                 msg.called = false;
             }
-            msg.data = {  deviceinfo:deviceInfo, available: true }
+            msg.data = {  deviceinfo:deviceInfo, available: true, event: "connected" }
             node.send(msg);
           
         });
@@ -134,9 +146,9 @@ module.exports = function(RED) {
             msg.data = {deviceInfo, available: true };
             msg.commandByte = commandByte;
             msg.payload = data;
-            if (commandByte == 7) {
-                node.send( msg);
-            }
+          
+            node.send( msg);
+            
         });
     
         node.on('input', (msg) => {
@@ -156,6 +168,7 @@ module.exports = function(RED) {
                             }
                         }else{
                             msg.error = `request not made as not connected ${deviceInfo.name}`;
+                            msg.data = {  deviceinfo:deviceInfo, available: true, event: "not connected so can't service request" }
                             node.send(msg);
                             delete node.in_msg;
                         } 
@@ -171,6 +184,8 @@ module.exports = function(RED) {
                            }
                        }else{
                            msg.error = `request not made as not connected ${deviceInfo.name}`;
+                           msg.data = {  deviceinfo:deviceInfo, available: true, event: "not connected so can't service request1" }
+ 
                            node.send(msg);
                            delete node.in_msg;
                        } 
