@@ -697,7 +697,7 @@ module.exports = function(RED) {
                             //node.warn(data);
                             msg.data = {deviceInfo, available: true, event: "data" };
                             msg.commandByte = commandByte;
-                            msg.payload = data;
+
                             if (commandByte) {
                                 node.send( msg);
                                
@@ -721,7 +721,7 @@ module.exports = function(RED) {
                                 }
                                 //node.warn(data);
                                 msg.data = { id: tuyaDevice.device.id,ip: tuyaDevice.device.ip, available: true, event:"already connect" };
-                                msg.payload = data;
+
                                 node.send( msg); 
                                 return;
                             }
@@ -743,7 +743,7 @@ module.exports = function(RED) {
                                         }
                                         //node.warn(data);
                                         msg.data = { id: tuyaDevice.device.id,ip: tuyaDevice.device.ip, available: true };
-                                        msg.payload = data;
+
                                         node.send( msg); 
                                         return;
                                     }
@@ -761,7 +761,6 @@ module.exports = function(RED) {
                                         //node.warn(data);
                                         msg.error = "catch failed connect";
                                         msg.data = { id: tuyaDevice.device.id,ip: tuyaDevice.device.ip, available: false,event: "already connected"};
-                                        msg.payload = data;
                                         node.send( msg); 
                                     });
                                 }
@@ -779,7 +778,6 @@ module.exports = function(RED) {
                                  //node.warn(data);
                                  msg.error = "catch failed find";
                                  msg.data = { id: tuyaDevice.device.id,ip: tuyaDevice.device.ip, available: false,event: "find failed"};
-                                 msg.payload = data;
                                  node.send( msg); 
                             }); 
                            
@@ -806,8 +804,7 @@ module.exports = function(RED) {
                             }
                             //node.warn(data);
                             msg.error = "catch failed find";
-                            msg.data = { deviceinfo: deviceInfo, available: false ,event:"disconnection"}
-                            msg.payload = data;
+                            msg.data = {  id: tuyaDevice.device.id,ip: tuyaDevice.device.ip,  available: false ,event:"disconnection"}
                             node.send( msg); 
                           
                         } 
