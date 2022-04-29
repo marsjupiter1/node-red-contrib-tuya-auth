@@ -720,7 +720,7 @@ module.exports = function(RED) {
                             //node.log(`Connecting to ${deviceInfo.name} @ ${deviceInfo.ip} (delay: ${delay ? 'yes' : 'no'})`)
                             clearTimeout(connectInterval);
                             clearTimeout(statusInterval);
-                            node.status({fill:"red",shape:"dot",text:"finding"});
+                            
                             if (tuyaDevice.isConnected()) {
                                 node.log(`Device ${deviceInfo.name} already connected.`);
                                 var msg = {}
@@ -738,6 +738,7 @@ module.exports = function(RED) {
                                 node.send( msg); 
                                 return;
                             }
+                            node.status({fill:"red",shape:"dot",text:"finding"});
                             tuyaDevice.find({'options': {'timeout':4000}}).then( () => {
                                 node.status({fill:"yellow",shape:"dot",text:"found"});
                                 if (delay) {
@@ -817,7 +818,7 @@ module.exports = function(RED) {
                             //node.log(`Device ${deviceInfo.name} disconnected, reconnect: ${tryReconnect}`);
                             if (tryReconnect) {
                                 //node.warn("reconnect following disconnect");
-                                connect(true);
+                                connect();
                                 // go on to emit message
                             }
                             node.status({ fill: 'red', shape: 'ring', text: 'disconnected' });
