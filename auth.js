@@ -26,6 +26,20 @@ module.exports = function(RED) {
             //node.log(`Connecting to ${deviceInfo.name} @ ${deviceInfo.ip} (delay: ${delay ? 'yes' : 'no'})`)
             clearTimeout(connectInterval);
             clearTimeout(statusInterval);
+            if (tuyaDevice.isConnected()) {
+                node.log(`Device ${deviceInfo.name} already connected.`);
+                var msg = {}
+                if ("in_msg" in node){
+                    msg = node.in_msg;
+                    msg.called = true;
+                    delete node.in_msg;
+                }else{
+                    //node.warn("no message"+node.in_msg);
+                    msg.called = false;
+                }
+                node.send(msg);
+                return;
+            }
             node.status({fill:"red",shape:"dot",text:"finding"});
   
             tuyaDevice.find({'options': {'timeout':3000}}).then( () => {
@@ -64,6 +78,15 @@ module.exports = function(RED) {
                 }
             }, (reason) => { 
                 node.status({fill:"red",shape:"ring",text:"find failed: " + reason+ "id:"+tuyaDevice.id+ "ip:"+tuyaDevice.ip});
+                var msg = {}
+                if ("in_msg" in node){
+                    msg = node.in_msg;
+                    msg.called = true;
+                    delete node.in_msg;
+                }else{
+                    //node.warn("no message"+node.in_msg);
+                    msg.called = false;
+                }
                 msg.error = "find failed";
                 node.send(msg);
             }); 
@@ -679,7 +702,24 @@ module.exports = function(RED) {
                             clearTimeout(connectInterval);
                             clearTimeout(statusInterval);
                             node.status({fill:"red",shape:"dot",text:"finding"});
-                  
+                            if (tuyaDevice.isConnected()) {
+                                node.log(`Device ${deviceInfo.name} already connected.`);
+                                var msg = {}
+                                var in_msg = node.in_msgs[msg.id];
+                                if (in_msg !== undefined){
+                                    msg = in_msg;
+                                    msg.called = true;
+                                    delete node.in_msgs[msg.id];
+                                }else{
+                                    //node.warn("no message"+node.in_msg);
+                                    msg.called = false;
+                                }
+                                //node.warn(data);
+                                msg.data = { id: tuyaDevice.device.id,ip: tuyaDevice.device.ip, available: true };
+                                msg.payload = data;
+                                node.send( msg); 
+                                return;
+                            }
                             tuyaDevice.find({'options': {'timeout':4000}}).then( () => {
                                 node.status({fill:"yellow",shape:"dot",text:"found"});
                                 if (delay) {
@@ -1019,7 +1059,24 @@ module.exports = function(RED) {
                             clearTimeout(tuyaDevice.connectInterval);
                             clearTimeout(tuyaDevice.statusInterval);
                             node.status({fill:"red",shape:"dot",text:"finding"});
-                  
+                            if (tuyaDevice.isConnected()) {
+                                var msg = {}
+                                var in_msg = node.in_msgs[tuyaDevice.device.id];
+                                if (in_msg !== undefined){
+                                    msg = in_msg;
+                                    msg.called = true;
+                                    //node.warn("delete 983");
+                                    delete node.in_msgs[msg.id];
+                                }else{
+                                    node.warn("no message in connect already connected");
+                                    msg.called = false;
+                                }
+                                //node.warn(data);
+                                msg.data = { id: tuyaDevice.device.id,ip: tuyaDevice.device.ip, available: true,event:"already connected" };
+                                msg.payload = data;
+                                node.send( msg);    
+                                return;
+                            }
                             tuyaDevice.find({'options': {'timeout':4000}}).then( () => {
                                 node.status({fill:"yellow",shape:"dot",text:"found"});
                                 if (delay) {
