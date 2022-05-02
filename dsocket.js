@@ -235,6 +235,7 @@ module.exports = function(RED) {
                     case 'connect':{
                         if (node.tuyaDevice !== undefined && node.tuyaDevice.isConnected()){
                             send_msg("already connected");
+                            return;
                         }
                        
                         //node.warn("id:"+ msg.id)
