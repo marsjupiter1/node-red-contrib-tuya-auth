@@ -18,7 +18,11 @@
   },
   "node-red": {
     "nodes": {
-      "tuya_sign": "auth.js"
+      
+      "tuya_sign": "auth.js",
+      "tuya-local-socket": "socket.js",
+      "dsocket": "dsocket.js",
+      "msocket": "msocket.js"
     }
   }
 }
