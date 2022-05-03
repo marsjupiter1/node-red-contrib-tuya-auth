@@ -28,7 +28,7 @@ module.exports = function (RED) {
             var msg = make_msg(tuyaDevice, event);
 
             node.send(msg);
-            node.status({ fill: "yellow", shape: "dot", text: "output " + msg.oldpayload + " " + event });
+            //node.status({ fill: "yellow", shape: "dot", text: "output " + msg.oldpayload + " " + event });
         }
         function make_msg(tuyaDevice, event) {
             var msg = {}
@@ -76,11 +76,12 @@ module.exports = function (RED) {
         function handleDisconnection(tuyaDevice) {
             clearTimeout(tuyaDevice.statusInterval);
             send_msg(tuyaDevice, "disconnected");
-            node.status({ fill: 'red', shape: 'ring', text: 'disconnected: ' + tuyaDevice.device.id });
+            node.status({ fill: 'red', shape: 'ring', text: 'disconnected: ' + tuyaDevice.device.id+ `" @ ${new Date().toLocaleTimeString()}` });
             if (tuyaDevice.tryReconnect) {
+                tuyaDevice.disconnect();
                 tuyaDevice = createNewSocket(tuyaDevice.device);
                 node.status({ fill: "red", shape: "dot", text: "delayed reconnect" });
-                tuyaDevice.connectInterval = setTimeout(() => connect(tuyaDevice), 5000);
+                tuyaDevice.connectInterval = setTimeout(() => connect(tuyaDevice), 1000);
 
             }
 
@@ -98,7 +99,7 @@ module.exports = function (RED) {
 
                 return
             }
-            node.status({ fill: "red", shape: "dot", text: "finding" });
+            node.status({ fill: "yellow", shape: "dot", text: "finding" });
             tuyaDevice.connecting = true;
             tuyaDevice.find({ 'options': { 'timeout': 5000 } }).then(() => {
                 node.status({ fill: "yellow", shape: "dot", text: "found" });
@@ -116,7 +117,7 @@ module.exports = function (RED) {
                     //node.warn("connect then block")
                 }).catch((e) => {
                     //node.warn("catch connect");
-                    node.status({ fill: "red", shape: "ring", text: "connect failed: " + e + "id:" + tuyaDevice.device.id + "ip:" + tuyaDevice.device.ip });
+                    node.status({ fill: "red", shape: "ring", text: "connect failed: " + e + "id:" + tuyaDevice.device.id + " ip:" + tuyaDevice.device.ip });
                     tuyaDevice.connecting = false;
 
                     send_msg(tuyaDevice, "failed connect: " + e);
@@ -125,7 +126,7 @@ module.exports = function (RED) {
             }, (reason) => {
                 tuyaDevice.connecting = false;
                 send_msg(tuyaDevice, "find failed: " + reason);
-                node.status({ fill: "red", shape: "ring", text: "find failed: " + reason + "id: " + tuyaDevice.device.id + "ip:" + tuyaDevice.device.ip });
+                node.status({ fill: "red", shape: "ring", text: "find failed: " + reason + "id: " + tuyaDevice.device.id + " ip:" + tuyaDevice.device.ip });
             });
 
         }
@@ -143,7 +144,7 @@ module.exports = function (RED) {
             tuyaDevice.connecting = false;
             node.tuyaDevices[msg.id] = tuyaDevice;
             tuyaDevice.on('connected', () => {
-                //node.log(`Device ${deviceInfo.name} connected!`);
+                node.warn(`Device ${deviceInfo.name} connected!`);
                 clearTimeout(tuyaDevice.connectInterval);
                 tuyaDevice.tryReconnect = false;
                 tuyaDevice.connectInterval = null;
@@ -166,11 +167,12 @@ module.exports = function (RED) {
                 handleDisconnection(tuyaDevice);
             });
             tuyaDevice.on('error', (err) => {
-
+                node.warn(`Device ${tuyaDevice.device.id} in error state: ${err}, reconnect: ${tuyaDevice.tryReconnect}`);
+                tuyaDevice.tryReconnect= true;// need to kill and retart
                 handleDisconnection(tuyaDevice);
             });
             tuyaDevice.on('data', (data, commandByte) => {
-                node.status({fill:"green",shape:"dot",text: tuyaDevice.device.ip +  `"data received ${new Date().toLocaleTimeString()}`});
+                //node.status({fill:"green",shape:"dot",text: tuyaDevice.device.ip+" id:" + tuyaDevice.device.id + `"data received ${new Date().toLocaleTimeString()}`});
                 if (commandByte == 8) {
                     node.warn("proactive");
                     return;
@@ -186,7 +188,7 @@ module.exports = function (RED) {
 
         node.on('input', (msg) => {
 
-            node.status({ fill: "yellow", shape: "dot", text: "input: " + msg.payload });
+            //node.status({ fill: "yellow", shape: "dot", text: "input: " + msg.payload });
             msg.oldpayload = msg.payload
             if (msg.force === undefined && node.in_msgs[msg.id] != undefined) {
                 msg.error = "already processing message " + node.in_msgs[msg.id];
@@ -251,7 +253,7 @@ module.exports = function (RED) {
 
                         if (tuyaDevice !== undefined && tuyaDevice.isConnected()) {
                             try {
-                                node.status({ fill: "yellow", shape: "dot", text: "get request" });
+                                //node.status({ fill: "yellow", shape: "dot", text: "get request" });
                                 tuyaDevice.get({ schema: true });
                                 //send_msg(tuyaDevice,"request got");
                             } catch (e) {
@@ -273,7 +275,7 @@ module.exports = function (RED) {
                     case 'request1':
                         if (tuyaDevice !== undefined && tuyaDevice.isConnected()) {
                             try {
-                                node.status({ fill: "yellow", shape: "dot", text: "get request1" });
+                                //node.status({ fill: "yellow", shape: "dot", text: "get request1" });
                                 tuyaDevice.get({ schema: false });
                                 //send_msg(tuyaDevice,"request1 got");
                             } catch (e) {
