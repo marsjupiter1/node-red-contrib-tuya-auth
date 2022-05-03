@@ -77,8 +77,9 @@ module.exports = function (RED) {
             clearTimeout(tuyaDevice.statusInterval);
             send_msg(tuyaDevice, "disconnected");
             node.status({ fill: 'red', shape: 'ring', text: 'disconnected: ' + tuyaDevice.device.id+ `" @ ${new Date().toLocaleTimeString()}` });
+            tuyaDevice.disconnect();
             if (tuyaDevice.tryReconnect) {
-                tuyaDevice.disconnect();
+                
                 tuyaDevice = createNewSocket(tuyaDevice.device);
                 node.status({ fill: "red", shape: "dot", text: "delayed reconnect" });
                 tuyaDevice.connectInterval = setTimeout(() => connect(tuyaDevice), 1000);
@@ -144,7 +145,7 @@ module.exports = function (RED) {
             tuyaDevice.connecting = false;
             node.tuyaDevices[msg.id] = tuyaDevice;
             tuyaDevice.on('connected', () => {
-                node.warn(`Device ${deviceInfo.name} connected!`);
+                node.warn(`Device ${tuyaDevice.device.id} connected!`);
                 clearTimeout(tuyaDevice.connectInterval);
                 tuyaDevice.tryReconnect = false;
                 tuyaDevice.connectInterval = null;

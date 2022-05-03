@@ -106,10 +106,11 @@ module.exports = function(RED) {
         function handleDisconnection(tuyaDevice) {
              
             clearTimeout(tuyaDevice.statusInterval);
+            tuyaDevice.disconnect();
             //node.log(`Device ${deviceInfo.name} disconnected, reconnect: ${tryReconnect}`);
             if (tuyaDevice.tryReconnect) {
                 tuyaDevice.tryReconnect = false;
-                tuyaDevice.disconnect();
+                
                 tuyaDevice = createNewSocket();
                 node.status({fill:"red",shape:"dot",text:"delayed reconnect"});
                 tuyaDevice.connectInterval = setTimeout(() => connect(), 1000);
@@ -143,7 +144,7 @@ module.exports = function(RED) {
             node.tuyaDevice = tDevice;
             tDevice.connecting = false;
             tDevice.on('connected', () => {
-                node.warn(`Device ${deviceInfo.name} connected!`);
+                node.warn(`Device ${tDevice.device.id} connected!`);
                 //node.tuyaDevice.connecting=false;
                 clearTimeout(tDevice.connectInterval);
                 //if (config.pollingInterval !== 0) {
@@ -164,7 +165,7 @@ module.exports = function(RED) {
             });
             tDevice.on('error', (err) => {
                 node.warn(`Device ${tDevice.device.id} in error state: ${err}, reconnect: ${tDevice.tryReconnect}`);
-                tDevice.tryReconnect= true;// kill and restart
+                tDevice.tryReconnect= false;// let die
                 handleDisconnection(tDevice);
             });
             tDevice.on('data', (data, commandByte) => {
