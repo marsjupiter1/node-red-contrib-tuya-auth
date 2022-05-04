@@ -170,7 +170,7 @@ module.exports = function (RED) {
             });
             tuyaDevice.on('error', (err) => {
                 node.warn(`Device ${tuyaDevice.device.id} in error state: ${err}, reconnect: ${tuyaDevice.tryReconnect}`);
-                tuyaDevice.tryReconnect= true;// need to kill and retart
+                tuyaDevice.tryReconnect= false;// need to kill and retart
                 handleDisconnection(tuyaDevice);
             });
             tuyaDevice.on('data', (data, commandByte) => {
