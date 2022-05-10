@@ -1,0 +1,207 @@
+[
+    {
+        "id": "8110d481b7b5e437",
+        "type": "function",
+        "z": "a7660a46c241f93e",
+        "name": "SetTuyaDetails",
+        "func": "var creds = global.get(\"tuya\");\nmsg.accessKey = creds.access_token;\nmsg.secretKey=global.get(\"tuya_secret_key\");\nmsg.clientKey  = global.get(\"tuya_client_id\");\nvar device_id = msg.device_id;\nmsg.url = \"/v1.0/iot-03/devices/\"+device_id+\"/commands\"\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 680,
+        "y": 160,
+        "wires": [
+            [
+                "1d6252336bdfff9c"
+            ]
+        ]
+    },
+    {
+        "id": "1a52321daaf99960",
+        "type": "delay",
+        "z": "a7660a46c241f93e",
+        "name": "prevent messages being in step",
+        "pauseType": "random",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "0",
+        "randomLast": "124",
+        "randomUnits": "milliseconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 430,
+        "y": 160,
+        "wires": [
+            [
+                "8110d481b7b5e437"
+            ]
+        ]
+    },
+    {
+        "id": "b2761691c20f3b9e",
+        "type": "function",
+        "z": "a7660a46c241f93e",
+        "name": "",
+        "func": "if (msg.payload.hasOwnProperty(\"result\")){\n    return [msg, null];\n}\nreturn [null, msg];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1120,
+        "y": 160,
+        "wires": [
+            [],
+            [
+                "a43f4a288d76a26a",
+                "dab83eb08af4c01a"
+            ]
+        ]
+    },
+    {
+        "id": "0fb4d11fb386014e",
+        "type": "tuya_auth",
+        "z": "a7660a46c241f93e",
+        "name": "",
+        "topic": "",
+        "host": "https://openapi.tuyaeu.com",
+        "x": 780,
+        "y": 240,
+        "wires": [
+            [
+                "aab72f73c4417410"
+            ]
+        ]
+    },
+    {
+        "id": "aab72f73c4417410",
+        "type": "function",
+        "z": "a7660a46c241f93e",
+        "name": "Extract Token from Response",
+        "func": "if (!msg.payload.hasOwnProperty(\"result\")){\n    node.warn(\"failed timed access token reqest\");\n    node.warn(msg);\n    return;\n}\n\nvar data = msg.payload;\n\nvar access = data.result.access_token;\nvar refresh = data.result.refresh_token;\nvar expire = data.result.expire_time;\nglobal.set(\"tuya_expire\",expire);\nvar creds ={\n \"access_token\" : access,\n \"refresh_token\" : refresh\n}\nglobal.set(\"tuya\", creds);\nmsg.accessKey = creds.access_token;\nmsg.payload = data.result;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1030,
+        "y": 240,
+        "wires": [
+            [
+                "1930853802b10fbc"
+            ]
+        ]
+    },
+    {
+        "id": "1664842ef3c75c5f",
+        "type": "function",
+        "z": "a7660a46c241f93e",
+        "name": "",
+        "func": "if (msg.payload.hasOwnProperty(\"result\")){\n    return [msg, null];\n}\nreturn [null, msg];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1420,
+        "y": 240,
+        "wires": [
+            [],
+            [
+                "9c845ecf138d7d2d"
+            ]
+        ]
+    },
+    {
+        "id": "1d6252336bdfff9c",
+        "type": "tuya_get",
+        "z": "a7660a46c241f93e",
+        "name": "",
+        "topic": "",
+        "host": "https://openapi.tuyaeu.com",
+        "x": 920,
+        "y": 160,
+        "wires": [
+            [
+                "b2761691c20f3b9e"
+            ]
+        ]
+    },
+    {
+        "id": "1930853802b10fbc",
+        "type": "tuya_get",
+        "z": "a7660a46c241f93e",
+        "name": "",
+        "topic": "",
+        "host": "https://openapi.tuyaeu.com",
+        "x": 1260,
+        "y": 240,
+        "wires": [
+            [
+                "1664842ef3c75c5f"
+            ]
+        ]
+    },
+    {
+        "id": "a43f4a288d76a26a",
+        "type": "debug",
+        "z": "a7660a46c241f93e",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "\"Tuya Token failed:: trying for new token\"",
+        "targetType": "jsonata",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1320,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "9c845ecf138d7d2d",
+        "type": "debug",
+        "z": "a7660a46c241f93e",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "\"Tuya Token retry failed:: giving up\"",
+        "targetType": "jsonata",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1580,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "dab83eb08af4c01a",
+        "type": "http request",
+        "z": "a7660a46c241f93e",
+        "name": "",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://openapi.tuyaeu.com/v1.0/token/{{{msg.refresh_token}}}",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 750,
+        "y": 360,
+        "wires": [
+            [
+                "aab72f73c4417410"
+            ]
+        ]
+    }
+]
