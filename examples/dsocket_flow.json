@@ -1,0 +1,276 @@
+[
+    {
+        "id": "3ff1e373cf571d60",
+        "type": "link out",
+        "z": "71f803001b268706",
+        "name": "loungeminer_socket_return",
+        "mode": "return",
+        "links": [],
+        "x": 1285,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "e862190aa0a64d5e",
+        "type": "function",
+        "z": "71f803001b268706",
+        "name": "",
+        "func": "if (!msg.called){\n    return;\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1160,
+        "y": 820,
+        "wires": [
+            [
+                "3ff1e373cf571d60"
+            ]
+        ]
+    },
+    {
+        "id": "0b97281144c54cfd",
+        "type": "link in",
+        "z": "71f803001b268706",
+        "name": "loungeminer_socket",
+        "links": [],
+        "x": 575,
+        "y": 860,
+        "wires": [
+            [
+                "c2eee97053288183"
+            ]
+        ]
+    },
+    {
+        "id": "c501f89c49c5985e",
+        "type": "inject",
+        "z": "71f803001b268706",
+        "name": "connect",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "180",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "10",
+        "topic": "",
+        "payload": "connect",
+        "payloadType": "str",
+        "x": 250,
+        "y": 860,
+        "wires": [
+            [
+                "808021bafe24caf5"
+            ]
+        ]
+    },
+    {
+        "id": "808021bafe24caf5",
+        "type": "link call",
+        "z": "71f803001b268706",
+        "name": "",
+        "links": [
+            "0b97281144c54cfd"
+        ],
+        "timeout": "30",
+        "x": 450,
+        "y": 860,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3470a80d3416dc59",
+        "type": "inject",
+        "z": "71f803001b268706",
+        "name": "request",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "120",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "20",
+        "topic": "",
+        "payload": "request",
+        "payloadType": "str",
+        "x": 250,
+        "y": 920,
+        "wires": [
+            [
+                "14cced891c0295ca"
+            ]
+        ]
+    },
+    {
+        "id": "14cced891c0295ca",
+        "type": "link call",
+        "z": "71f803001b268706",
+        "name": "",
+        "links": [
+            "0b97281144c54cfd"
+        ],
+        "timeout": "30",
+        "x": 450,
+        "y": 920,
+        "wires": [
+            [
+                "77e760f8db8d6f69"
+            ]
+        ]
+    },
+    {
+        "id": "60701fa92f4b290e",
+        "type": "tuya-local-dsocket",
+        "z": "71f803001b268706",
+        "devName": "loungeminer",
+        "devIp": "",
+        "devId": "",
+        "devKey": "",
+        "protocolVer": "3.3",
+        "pollingInterval": "50",
+        "renameSchema": "",
+        "filterCB": "",
+        "x": 940,
+        "y": 860,
+        "wires": [
+            [
+                "e862190aa0a64d5e",
+                "7e4751c4c5ad8d5a"
+            ]
+        ]
+    },
+    {
+        "id": "c2eee97053288183",
+        "type": "function",
+        "z": "71f803001b268706",
+        "name": "",
+        "func": "msg.id = global.get(\"loungeminer_device_id\");\nmsg.key = global.get(\"loungeminer_device_id_local_key\");\nmsg.ip = global.get(\"loungeminer_device_id_ip\");\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 860,
+        "wires": [
+            [
+                "60701fa92f4b290e"
+            ]
+        ]
+    },
+    {
+        "id": "77e760f8db8d6f69",
+        "type": "function",
+        "z": "71f803001b268706",
+        "name": "",
+        "func": "msg.device_id=global.get(\"loungeminer_device_id\");\nmsg.topic = msg.device_id;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 630,
+        "y": 920,
+        "wires": [
+            [
+                "1ea3e2f0caad4a2d",
+                "6fab9f56e404ad73"
+            ]
+        ]
+    },
+    {
+        "id": "6fab9f56e404ad73",
+        "type": "function",
+        "z": "71f803001b268706",
+        "name": "power",
+        "func": "if (!msg.hasOwnProperty(\"payload\")){\n    return;\n}\nif (!msg.payload.hasOwnProperty(\"dps\")){\n    return;\n}\nmsg.payload = msg.payload.dps[19]/10;\nif (isNaN(msg.payload)){\n    return;\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1170,
+        "y": 920,
+        "wires": [
+            [
+                "ccbed8613c819466"
+            ]
+        ]
+    },
+    {
+        "id": "1ea3e2f0caad4a2d",
+        "type": "function",
+        "z": "71f803001b268706",
+        "name": "switch",
+        "func": "if (!msg.hasOwnProperty(\"payload\")){\n    return;\n}\nif (msg.payload.hasOwnProperty(\"dps\")){\n    msg.payload = msg.payload.dps[1];\n    return msg;\n}\nreturn",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1170,
+        "y": 960,
+        "wires": [
+            [
+                "cdbf461ff01c459f"
+            ]
+        ]
+    },
+    {
+        "id": "cdbf461ff01c459f",
+        "type": "link out",
+        "z": "71f803001b268706",
+        "name": "tumbledryer_switch_state",
+        "mode": "link",
+        "links": [
+            "f7e7fecd3c54655e"
+        ],
+        "x": 1345,
+        "y": 940,
+        "wires": []
+    },
+    {
+        "id": "ccbed8613c819466",
+        "type": "link out",
+        "z": "71f803001b268706",
+        "name": "loungeminer_power",
+        "mode": "link",
+        "links": [
+            "6ec32aec4fc1690d",
+            "91d039075c52a10d",
+            "ab9de3b5ce892d00",
+            "d26770f1ac3c4abc"
+        ],
+        "x": 1355,
+        "y": 900,
+        "wires": []
+    },
+    {
+        "id": "7e4751c4c5ad8d5a",
+        "type": "link out",
+        "z": "71f803001b268706",
+        "name": "",
+        "mode": "link",
+        "links": [
+            "ee636171f39c0c7e"
+        ],
+        "x": 1065,
+        "y": 780,
+        "wires": []
+    }
+]
