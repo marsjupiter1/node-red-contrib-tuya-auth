@@ -16,15 +16,12 @@
     "qs": "^6.10.3",
     "tuyapi": "^7.2.1"
   },
-
   "engines": {
     "node": ">=12.0.0"
   },
-
   "scripts": {
     "test": "mocha"
   },
-
   "keywords": [
     "tuya",
     "node-red",
@@ -32,7 +29,6 @@
     "socket",
     "protocol"
   ],
-  
   "node-red": {
     "version": ">=2.0.0",
     "nodes": {
