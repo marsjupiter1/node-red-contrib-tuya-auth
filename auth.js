@@ -43,6 +43,8 @@ module.exports = function(RED) {
                   client_id: clientKey,
                   sign:  answer.sign
                 };
+                node.warn(answer.sign);
+                node.warn(clientKey);
                 msg.headers = headers;
                 var httpClient = axios.create({
                     baseURL: host,

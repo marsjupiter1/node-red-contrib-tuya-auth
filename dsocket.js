@@ -167,7 +167,7 @@ module.exports = function(RED) {
             tDevice.on('error', (err) => {
                 node.warn(`Device ${tDevice.device.id} in error state: ${err}, reconnect: ${tDevice.tryReconnect}`);
                 tDevice.tryReconnect= false;// let die
-  
+                node.status({ fill: 'red', shape: 'dot', text: tDevice.device.ip +  ` error @ ${new Date().toLocaleTimeString()} : ${err}` });
                 handleDisconnection(tDevice);
             });
             tDevice.on('data', (data, commandByte) => {
@@ -217,7 +217,7 @@ module.exports = function(RED) {
                             }
                         }else{
                           
-                            send_msg(`request not made as device disconnected ${node.config.name}` )
+                            send_msg(`request not made as device disconnected ${node.config.devId}` )
                           
                         }
                         break;
@@ -232,7 +232,7 @@ module.exports = function(RED) {
                                
                               }
                           }else{
-                              send_msg(`request not made as not connected ${node.config.name}`);
+                              send_msg(`request not made as not connected ${node.config.devId}`);
                              
                           }
                           break;  
